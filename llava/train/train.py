@@ -831,7 +831,7 @@ def train(attn_implementation=None):
                 torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
                 **bnb_model_from_pretrained_args
             )
-        elif 'cohere' in model_args.model_name_or_path:
+        elif 'aya' in model_args.model_name_or_path:
             model = LlavaCohereForCausalLM.from_pretrained(
                 model_args.model_name_or_path,
                 cache_dir=training_args.cache_dir,
