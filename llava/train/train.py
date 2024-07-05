@@ -892,7 +892,7 @@ def train(attn_implementation=None):
         model = get_peft_model(model, lora_config)
 
     # decide whether to use fast tokenizer
-    if 'mpt' in model_args.model_name_or_path or 'cohere' in model_args.model_name_or_path:
+    if 'mpt' in model_args.model_name_or_path or 'aya' in model_args.model_name_or_path:
         use_fast = True
     else:
         use_fast = False
