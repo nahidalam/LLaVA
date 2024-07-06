@@ -823,6 +823,22 @@ def train(attn_implementation=None):
                 cache_dir=training_args.cache_dir,
                 **bnb_model_from_pretrained_args
             )
+        elif 'mistral' in model_args.model_name_or_path:
+            model = LlavaMistralForCausalLM.from_pretrained(
+                model_args.model_name_or_path,
+                cache_dir=training_args.cache_dir,
+                attn_implementation=attn_implementation,
+                torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
+                **bnb_model_from_pretrained_args
+            )
+        elif 'aya' in model_args.model_name_or_path:
+            model = LlavaCohereForCausalLM.from_pretrained(
+                model_args.model_name_or_path,
+                cache_dir=training_args.cache_dir,
+                attn_implementation=attn_implementation,
+                torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
+                **bnb_model_from_pretrained_args
+            )
         else:
             model = LlavaLlamaForCausalLM.from_pretrained(
                 model_args.model_name_or_path,
@@ -875,21 +891,19 @@ def train(attn_implementation=None):
         rank0_print("Adding LoRA adapters...")
         model = get_peft_model(model, lora_config)
 
-    if 'mpt' in model_args.model_name_or_path:
-        tokenizer = transformers.AutoTokenizer.from_pretrained(
-            model_args.model_name_or_path,
-            cache_dir=training_args.cache_dir,
-            model_max_length=training_args.model_max_length,
-            padding_side="right"
-        )
+    # decide whether to use fast tokenizer
+    if 'mpt' in model_args.model_name_or_path or 'aya' in model_args.model_name_or_path:
+        use_fast = True
     else:
-        tokenizer = transformers.AutoTokenizer.from_pretrained(
-            model_args.model_name_or_path,
-            cache_dir=training_args.cache_dir,
-            model_max_length=training_args.model_max_length,
-            padding_side="right",
-            use_fast=False,
-        )
+        use_fast = False
+
+    tokenizer = transformers.AutoTokenizer.from_pretrained(
+        model_args.model_name_or_path,
+        cache_dir=training_args.cache_dir,
+        model_max_length=training_args.model_max_length,
+        padding_side="right",
+        use_fast=use_fast,
+    )
 
     if model_args.version == "v0":
         if tokenizer.pad_token is None:
