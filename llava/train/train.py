@@ -34,7 +34,8 @@ from llava.train.llava_trainer import LLaVATrainer
 from llava import conversation as conversation_lib
 from llava.model import *
 from llava.mm_utils import tokenizer_image_token
-
+from llava.model.language_model.llava_cohere import LlavaCohereForCausalLM
+from transformers.models.cohere.tokenization_cohere_fast import CohereTokenizerFast
 from PIL import Image
 
 
@@ -823,6 +824,14 @@ def train(attn_implementation=None):
                 cache_dir=training_args.cache_dir,
                 **bnb_model_from_pretrained_args
             )
+        elif 'aya' in model_args.model_name_or_path:
+            model = LlavaCohereForCausalLM.from_pretrained(
+                model_args.model_name_or_path,
+                cache_dir=training_args.cache_dir,
+                attn_implementation=attn_implementation,
+                torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
+                **bnb_model_from_pretrained_args
+            )
         else:
             model = LlavaLlamaForCausalLM.from_pretrained(
                 model_args.model_name_or_path,
@@ -882,6 +891,18 @@ def train(attn_implementation=None):
             model_max_length=training_args.model_max_length,
             padding_side="right"
         )
+    elif 'aya' in model_args.model_name_or_path:
+        #tokenizer = transformers.AutoTokenizer.from_pretrained(
+        tokenizer = CohereTokenizerFast.from_pretrained(
+            model_args.model_name_or_path,
+            cache_dir=training_args.cache_dir,
+            model_max_length=training_args.model_max_length,
+            padding_side="right",
+            use_fast=True,
+        )
+        tokenizer.unk_token="<UNK>"
+        # to-do: not sure why unk_token is not getting assigned from from_pretrained
+        # actual source code looks good and above token was picked from CohereTokenizerFast
     else:
         tokenizer = transformers.AutoTokenizer.from_pretrained(
             model_args.model_name_or_path,
