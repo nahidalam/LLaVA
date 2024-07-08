@@ -900,7 +900,7 @@ def train(attn_implementation=None):
             padding_side="right",
             use_fast=True,
         )
-        tokenizer.unk_token="<UNK>"
+        #tokenizer.unk_token="<UNK>"
         # to-do: not sure why unk_token is not getting assigned from from_pretrained
         # actual source code looks good and above token was picked from CohereTokenizerFast
     else:
@@ -922,7 +922,9 @@ def train(attn_implementation=None):
     elif model_args.version == "v0.5":
         tokenizer.pad_token = tokenizer.unk_token
     else:
-        tokenizer.pad_token = tokenizer.unk_token
+        #tokenizer.pad_token = tokenizer.unk_token
+        if not 'aya' in model_args.model_name_or_path:
+            tokenizer.pad_token = tokenizer.unk_token
         if model_args.version in conversation_lib.conv_templates:
             conversation_lib.default_conversation = conversation_lib.conv_templates[model_args.version]
         else:
