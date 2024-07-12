@@ -13,9 +13,10 @@ pip install transformers==4.42.3
 pip install accelerate==0.27.2
 ```
 ## Contributors
-Satya https://github.com/Satyajitv
-Ryan Chan https://github.com/rchan26
-
+- Satya https://github.com/Satyajitv
+- Ryan Chan https://github.com/rchan26
+- Sangyeon Kim https://github.com/KimSangYeon-DGU
+- Snehanshu https://github.com/pilot-j
 
 # 🌋 LLaVA: Large Language and Vision Assistant
 
