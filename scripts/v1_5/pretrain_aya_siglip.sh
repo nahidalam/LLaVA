@@ -14,7 +14,7 @@ deepspeed llava/train/train_mem.py \
     --version $PROMPT_VERSION \
     --data_path /home/ubuntu/LLaVA/playground/data/LLaVA-Pretrain/blip_laion_cc_sbu_558k.json \
     --image_folder /home/ubuntu/LLaVA/playground/data/LLaVA-Pretrain/images \
-    --vision_tower google/siglip-base-patch16-256-multilingual \
+    --vision_tower google/siglip-so400m-patch14-384 \
     --mm_projector_type mlp2x_gelu \
     --tune_mm_mlp_adapter True \
     --mm_vision_select_layer -2 \
