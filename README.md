@@ -17,6 +17,7 @@ pip install accelerate==0.27.2
 - Ryan Chan https://github.com/rchan26
 - Sangyeon Kim https://github.com/KimSangYeon-DGU
 - Snehanshu https://github.com/pilot-j
+- Drishti Sushma  https://github.com/DrishtiShrrrma
 
 # 🌋 LLaVA: Large Language and Vision Assistant
 
