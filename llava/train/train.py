@@ -666,11 +666,16 @@ class LazySupervisedDataset(Dataset):
         super(LazySupervisedDataset, self).__init__()
 
         list_data_dict = []
+        files_count = 0
         for filename in os.listdir(data_path):
             if filename.endswith('.json'):
+                files_count += 1
+                print(f"Adding new language {filename} file")
                 data = json.load(open(os.path.join(data_path, filename), "r"))
                 list_data_dict = list_data_dict + data
 
+        print(f"Total number of files added to dataset: {files_count}")
+        print(f"Total number of data points: {len(list_data_dict)}")
         random.shuffle(list_data_dict)
 
         rank0_print("Formatting inputs...Skip in lazy mode")
