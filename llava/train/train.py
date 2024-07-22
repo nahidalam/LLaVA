@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 import json
 import logging
 import pathlib
+import random
 from typing import Dict, Optional, Sequence, List
 
 import torch
@@ -663,7 +664,14 @@ class LazySupervisedDataset(Dataset):
                  tokenizer: transformers.PreTrainedTokenizer,
                  data_args: DataArguments):
         super(LazySupervisedDataset, self).__init__()
-        list_data_dict = json.load(open(data_path, "r"))
+
+        list_data_dict = []
+        for filename in os.listdir(data_path):
+            if filename.endswith('.json'):
+                data = json.load(open(os.path.join(data_path, filename), "r"))
+                list_data_dict = list_data_dict + data
+
+        random.shuffle(list_data_dict)
 
         rank0_print("Formatting inputs...Skip in lazy mode")
         self.tokenizer = tokenizer
@@ -900,7 +908,7 @@ def train(attn_implementation=None):
             padding_side="right",
             use_fast=True,
         )
-        #tokenizer.unk_token="<UNK>"
+        tokenizer.unk_token="null"
         # to-do: not sure why unk_token is not getting assigned from from_pretrained
         # actual source code looks good and above token was picked from CohereTokenizerFast
     else:
@@ -922,9 +930,9 @@ def train(attn_implementation=None):
     elif model_args.version == "v0.5":
         tokenizer.pad_token = tokenizer.unk_token
     else:
-        #tokenizer.pad_token = tokenizer.unk_token
-        if not 'aya' in model_args.model_name_or_path:
-            tokenizer.pad_token = tokenizer.unk_token
+        tokenizer.pad_token = tokenizer.unk_token
+        if 'aya' in model_args.model_name_or_path:
+            tokenizer.pad_token = "<PAD>"
         if model_args.version in conversation_lib.conv_templates:
             conversation_lib.default_conversation = conversation_lib.conv_templates[model_args.version]
         else:
