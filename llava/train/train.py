@@ -476,6 +476,9 @@ def preprocess_v1(
                 round_len = len(tokenizer(rou).input_ids)
                 instruction_len = len(tokenizer(parts[0]).input_ids) - 2
 
+            if type(tokenizer) == CohereTokenizerFast:
+                tokenizer.legacy = False
+
             if i != 0 and not tokenizer.legacy and IS_TOKENIZER_GREATER_THAN_0_14:
                 round_len -= 1
                 instruction_len -= 1
