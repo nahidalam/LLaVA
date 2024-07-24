@@ -126,11 +126,19 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
     elif 'aya' in model_name.lower():
         
         ## TO DO : Currently only works for projector pretrained models. Doesnt support PEFT models or models with base LLMs trained
-        tokenizer = AutoTokenizer.from_pretrained(model_base, use_fast=True)
+        tokenizer = AutoTokenizer.from_pretrained(model_base, padding_side="right", use_fast=True)
         cfg_pretrained = LlavaCohereConfig.from_pretrained(model_path)
         model = LlavaCohereForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, config=cfg_pretrained, **kwargs)
 
-        mm_projector_weights = torch.load(os.path.join(model_path, 'mm_projector.bin'), map_location='cpu')
+        ## TO DO : Improve the processing/loading/saving of the projector file
+        projector_file_path = os.path.join(os.getcwd(), 'mm_projector.bin')
+        if not os.path.exists(projector_file_path):
+
+            projector_file_link = os.path.join('https://huggingface.co/',model_path,'resolve/main/mm_projector.bin')
+            print(f"Downloading {projector_file_link} ...")
+            os.system(f"wget {projector_file_link}")
+
+        mm_projector_weights = torch.load(projector_file_path, map_location='cpu')
         mm_projector_weights = {k: v.to(torch.float16) for k, v in mm_projector_weights.items()}
         model.load_state_dict(mm_projector_weights, strict=False)
 
