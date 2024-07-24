@@ -22,6 +22,10 @@ import torch
 from llava.model import *
 from llava.constants import DEFAULT_IMAGE_PATCH_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
 
+from transformers.models.cohere.tokenization_cohere_fast import CohereTokenizerFast
+from llava.model.language_model.llava_cohere import LlavaCohereForCausalLM, LlavaCohereConfig
+
+
 
 def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, load_4bit=False, device_map="auto", device="cuda", use_flash_attn=False, **kwargs):
     kwargs = {"device_map": device_map, **kwargs}
@@ -119,6 +123,19 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
                     low_cpu_mem_usage=True,
                     **kwargs
                 )
+    elif 'aya' in model_name.lower():
+        
+        ## TO DO : Currently only works for projector pretrained models. Doesnt support PEFT models or models with base LLMs trained
+        tokenizer = AutoTokenizer.from_pretrained(model_base, use_fast=True)
+        cfg_pretrained = LlavaCohereConfig.from_pretrained(model_path)
+        model = LlavaCohereForCausalLM.from_pretrained(model_base, low_cpu_mem_usage=True, config=cfg_pretrained, **kwargs)
+
+        mm_projector_weights = torch.load(os.path.join(model_path, 'mm_projector.bin'), map_location='cpu')
+        mm_projector_weights = {k: v.to(torch.float16) for k, v in mm_projector_weights.items()}
+        model.load_state_dict(mm_projector_weights, strict=False)
+
+
+
     else:
         # Load language model
         if model_base is not None:
@@ -143,7 +160,7 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
 
     image_processor = None
 
-    if 'llava' in model_name.lower():
+    if 'llava' in model_name.lower() or 'aya' in model_name.lower():
         mm_use_im_start_end = getattr(model.config, "mm_use_im_start_end", False)
         mm_use_im_patch_token = getattr(model.config, "mm_use_im_patch_token", True)
         if mm_use_im_patch_token:
