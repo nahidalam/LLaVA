@@ -13,6 +13,7 @@ class SeparatorStyle(Enum):
     MPT = auto()
     PLAIN = auto()
     LLAMA_2 = auto()
+    MAYA = auto()
 
 
 @dataclasses.dataclass
@@ -207,6 +208,17 @@ class Conversation:
             "sep2": self.sep2,
         }
 
+conv_maya = Conversation(
+    system="You are a multilingual and multimodal AI assistant capable of understanding and responding to instructions in 8 languages. "
+           "You can also process and understand visual content provided by the user.",
+    roles=("USER", "ASSISTANT"),
+    version="maya_v1",
+    messages=(),
+    offset=0,
+    sep_style=SeparatorStyle.TWO,
+    sep="<s>",
+    sep2="</s>",
+)
 
 conv_vicuna_v0 = Conversation(
     system="A chat between a curious human and an artificial intelligence assistant. "
@@ -371,7 +383,8 @@ Answer the questions.""",
 
 default_conversation = conv_vicuna_v1
 conv_templates = {
-    "default": conv_vicuna_v0,
+    "default": conv_maya,
+    "maya" : conv_maya,
     "v0": conv_vicuna_v0,
     "v1": conv_vicuna_v1,
     "vicuna_v1": conv_vicuna_v1,
