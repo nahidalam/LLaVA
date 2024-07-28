@@ -8,14 +8,16 @@ export IMAGES="$MULTILINGUAL_LLAVA_BENCH_PATH/images"
 #export MODEL_NAME="palo-v1.5-7b-665en_150K_of_arr_chi_hin_spa_ben_fr_jap_rus_ur"
 #export OPENAI_API_KEY="write your open-ai key"
 
-MODEL=$1
-MODEL_NAME=$2
-export OPENAI_API_KEY=$3
+MODEL_BASE=$1
+MODEL_PATH=$2
+PROJECTOR_PATH=$3
+MODEL_NAME=$4
+export OPENAI_API_KEY=$5
 
 export PYTHONPATH="./:$PYTHONPATH"
 
 # 1.English
-bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/english/questions.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/english/answers_gpt4.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/english/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_English.jsonl
+bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL_BASE" "$MODEL_PATH" "$PROJECTOR_PATH" "$MULTILINGUAL_LLAVA_BENCH_PATH"/english/questions.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/english/answers_gpt4.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/english/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_English.jsonl
 
 # 2.Chinese
 # bash scripts/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/chinese/corrected/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/chinese/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/chinese/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Chinese.jsonl
