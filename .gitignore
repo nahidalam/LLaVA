@@ -10,6 +10,10 @@ dist
 *.json
 *.jsonl
 
+# Exceptions
+!evaluation/Maya-8B_English.jsonl
+!evaluation/reviews/Maya-8B_English.jsonl
+
 # Data
 !**/alpaca-data-conversation.json
 

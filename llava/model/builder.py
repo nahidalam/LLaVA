@@ -22,8 +22,8 @@ import torch
 from llava.model import *
 from llava.constants import DEFAULT_IMAGE_PATCH_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
 
-from transformers.models.cohere.tokenization_cohere_fast import CohereTokenizerFast
-from llava.model.language_model.llava_cohere import LlavaCohereForCausalLM, LlavaCohereConfig
+# from transformers.models.cohere.tokenization_cohere_fast import CohereTokenizerFast
+# from llava.model.language_model.llava_cohere import LlavaCohereForCausalLM, LlavaCohereConfig
 
 
 

@@ -1,15 +1,20 @@
 #!/bin/bash
 
 IMAGES=$1
-MODEL=$2
-QUESTIONS=$3
-ANSWERS=$4
-CONTEXT=$5
-OUTPUT_DIR=$6
-OUTPUT_FILE=$7
+MODEL_BASE=$2
+MODEL_PATH=$3
+PROJECTOR_PATH=$4
+QUESTIONS=$5
+ANSWERS=$6
+CONTEXT=$7
+OUTPUT_DIR=$8
+OUTPUT_FILE=$9
 
-python llava/eval/model_vqa.py \
-    --model-path "$MODEL" \
+
+python llava/eval/model_vqa_maya.py \
+    --model-base "$MODEL_BASE" \
+    --model-path "$MODEL_PATH" \
+    --projector-path "$PROJECTOR_PATH" \
     --question-file "$QUESTIONS" \
     --image-folder "$IMAGES" \
     --answers-file "$OUTPUT_DIR/$OUTPUT_FILE" \
