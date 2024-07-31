@@ -66,6 +66,15 @@ class ModelArguments:
     mm_use_im_patch_token: bool = field(default=True)
     mm_patch_merge_type: Optional[str] = field(default='flat')
     mm_vision_select_feature: Optional[str] = field(default="patch")
+    unfreeze_text_layers: Optional[int] = field(default=None)
+    unfreeze_vision_layers: Optional[int] = field(default=None)
+
+
+    def __post_init__(self):
+        if self.unfreeze_text_layers or self.unfreeze_vision_layers:
+            self.freeze_backbone = False
+        else:
+            self.freeze_backbone = True   
 
 
 @dataclass
@@ -665,14 +674,18 @@ class LazySupervisedDataset(Dataset):
                  data_args: DataArguments):
         super(LazySupervisedDataset, self).__init__()
 
-        list_data_dict = []
-        files_count = 0
-        for filename in os.listdir(data_path):
-            if filename.endswith('.json'):
-                files_count += 1
-                print(f"Adding new language {filename} file")
-                data = json.load(open(os.path.join(data_path, filename), "r"))
-                list_data_dict = list_data_dict + data
+        if data_path.endswith('.json'):
+            files_count = 1
+            list_data_dict = json.load(open(data_path, "r"))
+        else:
+            files_count = 0
+            list_data_dict = []
+            for filename in os.listdir(data_path):
+                if filename.endswith('.json'):
+                    files_count += 1
+                    print(f"Adding new language {filename} file")
+                    data = json.load(open(os.path.join(data_path, filename), "r"))
+                    list_data_dict = list_data_dict + data
 
         print(f"Total number of files added to dataset: {files_count}")
         print(f"Total number of data points: {len(list_data_dict)}")
@@ -799,6 +812,37 @@ def make_supervised_data_module(tokenizer: transformers.PreTrainedTokenizer,
                 data_collator=data_collator)
 
 
+
+def unfreeze_text_layers(model, count):
+    counter = 1
+    print(model)
+    outer_layers = list(model.named_children())
+    outer_layers = list(reversed(outer_layers))
+    for name, layer in outer_layers:
+        if isinstance(layer, torch.nn.ModuleList):
+            list_gen = list(layer.named_children())
+            for att_name, attn_layer in list(reversed(list_gen)):
+                if counter > count:
+                    print(f'Freezing nn.ModuleList layer {att_name}: {counter}')
+                    for param in attn_layer.parameters():
+                        param.requires_grad = False
+                else:
+                    print(f'NOT-Freezing nn.ModuleList layer {att_name}: {counter}')
+                    for param in attn_layer.parameters():
+                        param.requires_grad = True
+                counter+=1
+        else:
+            if counter > count:
+                print(f'Freezing model layer {name}: {counter}')
+                for param in layer.parameters():
+                    param.requires_grad = False
+            else:
+                for param in layer.parameters():
+                    param.requires_grad = True
+                print(f'NOT-Freezing model layer {name}: {counter}')
+            counter+=1
+
+
 def train(attn_implementation=None):
     global local_rank
 
@@ -863,7 +907,11 @@ def train(attn_implementation=None):
         )
     model.config.use_cache = False
 
-    if model_args.freeze_backbone:
+    #if model_args.freeze_backbone:
+    #    model.model.requires_grad_(False)
+    if model_args.unfreeze_text_layers:
+        unfreeze_text_layers(model.model, model_args.unfreeze_text_layers)
+    else:
         model.model.requires_grad_(False)
 
     if training_args.bits in [4, 8]:
@@ -961,7 +1009,8 @@ def train(attn_implementation=None):
 
         model.config.tune_mm_mlp_adapter = training_args.tune_mm_mlp_adapter = model_args.tune_mm_mlp_adapter
         if model_args.tune_mm_mlp_adapter:
-            model.requires_grad_(False)
+            if not (model_args.unfreeze_text_layers or model_args.unfreeze_vision_layers): # avoid freezing when one of the params are set
+                model.requires_grad_(False)
             for p in model.get_model().mm_projector.parameters():
                 p.requires_grad = True
 
@@ -994,6 +1043,7 @@ def train(attn_implementation=None):
 
     data_module = make_supervised_data_module(tokenizer=tokenizer,
                                               data_args=data_args)
+
     trainer = LLaVATrainer(model=model,
                     tokenizer=tokenizer,
                     args=training_args,
