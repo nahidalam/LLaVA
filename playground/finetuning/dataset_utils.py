@@ -24,6 +24,7 @@ from llava.train.llava_trainer import LLaVATrainer
 from llava import conversation as conversation_lib
 from llava.model import *
 from llava.mm_utils import tokenizer_image_token
+from transformers.models.cohere.tokenization_cohere_fast import CohereTokenizerFast
 
 from PIL import Image
 
@@ -149,6 +150,9 @@ def preprocess_v1(
     conv = conversation_lib.default_conversation.copy()
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
 
+    if type(tokenizer) == CohereTokenizerFast:
+        tokenizer.legacy = False
+
     # Apply prompt templates
     conversations = []
     for i, source in enumerate(sources):
@@ -204,10 +208,11 @@ def preprocess_v1(
                 round_len = len(tokenizer(rou).input_ids)
                 instruction_len = len(tokenizer(parts[0]).input_ids) - 2
 
-            # if i != 0 and not tokenizer.legacy and IS_TOKENIZER_GREATER_THAN_0_14:
-            if i != 0 and IS_TOKENIZER_GREATER_THAN_0_14:
-                round_len -= 1
-                instruction_len -= 1
+            
+            if type(tokenizer) != CohereTokenizerFast:
+                if i != 0 and not tokenizer.legacy and IS_TOKENIZER_GREATER_THAN_0_14:
+                    round_len -= 1
+                    instruction_len -= 1
 
             target[cur_len : cur_len + instruction_len] = IGNORE_INDEX
 
