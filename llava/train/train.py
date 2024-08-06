@@ -943,11 +943,12 @@ def train(attn_implementation=None):
             )
     elif model_args.version == "v0.5":
         tokenizer.pad_token = tokenizer.unk_token
-    elif 'aya' in model_args.model_name_or_path:
-        tokenizer.pad_token = "<PAD>"
-        conversation_lib.default_conversation = conversation_lib.conv_templates['aya']
     else:
-        tokenizer.pad_token = tokenizer.unk_token        
+        tokenizer.pad_token = tokenizer.unk_token
+
+        if 'aya' in model_args.model_name_or_path:
+            tokenizer.pad_token = "<PAD>"
+
         if model_args.version in conversation_lib.conv_templates:
             conversation_lib.default_conversation = conversation_lib.conv_templates[model_args.version]
         else:
