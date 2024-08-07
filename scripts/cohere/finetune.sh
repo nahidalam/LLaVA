@@ -14,10 +14,11 @@
 # MODEL_VERSION="llama-2-7b-chat"
 ################## LLaMA-2 ##################
 
+
 deepspeed llava/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
     --model_name_or_path ./checkpoints/$MODEL_VERSION \
-    --version $PROMPT_VERSION \
+    --version aya \
     --data_path ./playground/data/llava_instruct_80k.json \
     --image_folder /path/to/coco/train2017 \
     --vision_tower openai/clip-vit-large-patch14 \

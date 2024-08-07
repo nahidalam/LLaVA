@@ -4,7 +4,7 @@ deepspeed llava/train/train_mem.py \
     --lora_enable True --lora_r 128 --lora_alpha 256 --mm_projector_lr 2e-5 \
     --deepspeed ./scripts/zero2.json \
     --model_name_or_path CohereForAI/aya-23-8B \
-    --version v1 \
+    --version aya \
     --data_path ./playground/data/ \        # the updated train.py code now looks for a folder with .json files instead of the name of the json file itself
     --image_folder ./playground/data/PALO \
     --vision_tower openai/clip-vit-large-patch14-336 \
