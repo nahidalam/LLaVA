@@ -421,6 +421,9 @@ def preprocess_v1(
     conv = conversation_lib.default_conversation.copy()
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
 
+    if type(tokenizer) == CohereTokenizerFast:
+        tokenizer.legacy = False
+
     # Apply prompt templates
     conversations = []
     for i, source in enumerate(sources):
@@ -476,12 +479,11 @@ def preprocess_v1(
                 round_len = len(tokenizer(rou).input_ids)
                 instruction_len = len(tokenizer(parts[0]).input_ids) - 2
 
-            if type(tokenizer) == CohereTokenizerFast:
-                tokenizer.legacy = False
-
-            if i != 0 and not tokenizer.legacy and IS_TOKENIZER_GREATER_THAN_0_14:
-                round_len -= 1
-                instruction_len -= 1
+            
+            if type(tokenizer) != CohereTokenizerFast:
+                if i != 0 and not tokenizer.legacy and IS_TOKENIZER_GREATER_THAN_0_14:
+                    round_len -= 1
+                    instruction_len -= 1
 
             target[cur_len : cur_len + instruction_len] = IGNORE_INDEX
 
@@ -943,8 +945,10 @@ def train(attn_implementation=None):
         tokenizer.pad_token = tokenizer.unk_token
     else:
         tokenizer.pad_token = tokenizer.unk_token
+
         if 'aya' in model_args.model_name_or_path:
             tokenizer.pad_token = "<PAD>"
+
         if model_args.version in conversation_lib.conv_templates:
             conversation_lib.default_conversation = conversation_lib.conv_templates[model_args.version]
         else:
