@@ -254,14 +254,16 @@ def get_finetune_lora_args(model_name,
 data_path, 
 image_folder, 
 output_dir, 
-logging_dir):
+logging_dir,
+version = 'v1',
+vision_tower = 'openai/clip-vit-large-patch14-336'):
 
     model_args = ModelArguments(
             model_name_or_path=model_name, 
-            version='v1', 
+            version=version, 
             freeze_backbone=False, 
             tune_mm_mlp_adapter=False, 
-            vision_tower='openai/clip-vit-large-patch14-336', 
+            vision_tower=vision_tower, 
             mm_vision_select_layer=-2, 
             pretrain_mm_mlp_adapter=pretrain_mm_mlp_adapter,
             mm_projector_type='mlp2x_gelu',
