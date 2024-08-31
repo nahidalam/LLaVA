@@ -256,7 +256,9 @@ image_folder,
 output_dir, 
 logging_dir,
 version = 'v1',
-vision_tower = 'openai/clip-vit-large-patch14-336'):
+vision_tower = 'openai/clip-vit-large-patch14-336',
+lora_r = 128,
+lora_alpha = 256):
 
     model_args = ModelArguments(
             model_name_or_path=model_name, 
@@ -359,11 +361,11 @@ vision_tower = 'openai/clip-vit-large-patch14-336'):
     logging_nan_inf_filter=True,
     logging_steps=1.0,
     logging_strategy='steps',
-    lora_alpha=256,
+    lora_alpha=lora_alpha,
     lora_bias='none',
     lora_dropout=0.05,
     lora_enable=True,
-    lora_r=128,
+    lora_r=lora_r,
     lora_weight_path='',
     lr_scheduler_kwargs={},
     lr_scheduler_type='cosine',
