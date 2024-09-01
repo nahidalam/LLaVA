@@ -38,7 +38,7 @@ from llava.mm_utils import tokenizer_image_token
 from llava.model.language_model.llava_cohere import LlavaCohereForCausalLM
 from transformers.models.cohere.tokenization_cohere_fast import CohereTokenizerFast
 from PIL import Image
-
+import functools
 
 local_rank = None
 
@@ -46,6 +46,17 @@ local_rank = None
 def rank0_print(*args):
     if local_rank == 0:
         print(*args)
+
+
+def wrap_siglip_forward_method(siglip_object):
+    original_forward = siglip_object.forward
+
+    @functools.wraps(original_forward)
+    def wrapped_forward(pixel_values, interpolate_pos_encoding=True):
+        return original_forward(pixel_values, interpolate_pos_encoding=interpolate_pos_encoding)
+
+    siglip_object.forward = wrapped_forward
+    return siglip_object
 
 
 from packaging import version
@@ -972,6 +983,14 @@ def train(attn_implementation=None):
         
         vision_tower = model.get_vision_tower()
         vision_tower.to(dtype=torch.bfloat16 if training_args.bf16 else torch.float16, device=training_args.device)
+
+        if vision_tower.__class__.__name__ == 'SiglipVisionTower':
+            #Enforcing interpolate_pos_encoding = True by default for Siglip embeddings
+            siglip_embedding = vision_tower.vision_tower.vision_model.embeddings
+
+            siglip_embedding = wrap_forward_method(siglip_embedding)
+            vision_tower.vision_tower.vision_model.embeddings = siglip_embedding
+
 
         data_args.image_processor = vision_tower.image_processor
         data_args.is_multimodal = True
