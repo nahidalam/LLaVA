@@ -988,7 +988,7 @@ def train(attn_implementation=None):
             #Enforcing interpolate_pos_encoding = True by default for Siglip embeddings
             siglip_embedding = vision_tower.vision_tower.vision_model.embeddings
 
-            siglip_embedding = wrap_forward_method(siglip_embedding)
+            siglip_embedding = wrap_siglip_forward_method(siglip_embedding)
             vision_tower.vision_tower.vision_model.embeddings = siglip_embedding
 
 
