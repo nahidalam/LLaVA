@@ -261,7 +261,6 @@ class LlavaMetaForCausalLM(ABC):
                         cur_image_features = image_features[cur_image_idx]
                     except Exception as e:
                         print(f'Index ERROR issue due to data/image mismatch/missing: {e}')
-                    cur_image_features = image_features[cur_image_idx]
                     cur_image_idx += 1
                     cur_new_input_embeds.append(cur_image_features)
                     cur_new_labels.append(torch.full((cur_image_features.shape[0],), IGNORE_INDEX, device=cur_labels.device, dtype=cur_labels.dtype))
