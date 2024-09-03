@@ -12,8 +12,8 @@ deepspeed llava/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
     --model_name_or_path CohereForAI/aya-23-8B \
     --version $PROMPT_VERSION \
-    --data_path /home/ubuntu/LLaVA/playground/data/LLaVA-Pretrain \
-    --image_folder /home/ubuntu/LLaVA/playground/data/LLaVA-Pretrain/images \
+    --data_path /dev/data/LLaVA_Pretrain \
+    --image_folder /dev/data/images \
     --vision_tower google/siglip-base-patch16-256-multilingual \
     --mm_projector_type mlp2x_gelu \
     --tune_mm_mlp_adapter True \
@@ -25,7 +25,7 @@ deepspeed llava/train/train_mem.py \
     --num_train_epochs 1 \
     --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 4 \
-    --gradient_accumulation_steps 1 \
+    --gradient_accumulation_steps 8 \
     --evaluation_strategy "no" \
     --save_strategy "steps" \
     --save_steps 24000 \
