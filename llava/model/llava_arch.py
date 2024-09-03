@@ -260,7 +260,7 @@ class LlavaMetaForCausalLM(ABC):
                     try:
                         cur_image_features = image_features[cur_image_idx]
                     except Exception as e:
-                        print('Index ERROR issue due to data/image mismatch/missing')
+                        print(f'Index ERROR issue due to data/image mismatch/missing: {e}')
                     cur_image_features = image_features[cur_image_idx]
                     cur_image_idx += 1
                     cur_new_input_embeds.append(cur_image_features)
