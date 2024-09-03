@@ -780,6 +780,9 @@ class LazySupervisedDataset(Dataset):
             else:
                 crop_size = self.data_args.image_processor.crop_size
             data_dict['image'] = torch.zeros(3, crop_size['height'], crop_size['width'])
+        print(sources)
+        print(data_dict)
+        print('Tracking source and data_dict above.....')
         return data_dict
 
 
