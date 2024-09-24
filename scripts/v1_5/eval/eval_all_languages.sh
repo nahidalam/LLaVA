@@ -20,28 +20,28 @@ export PYTHONPATH="./:$PYTHONPATH"
 bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL_BASE" "$MODEL_PATH" "$PROJECTOR_PATH" "$MULTILINGUAL_LLAVA_BENCH_PATH"/english/questions.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/english/answers_gpt4.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/english/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_English.jsonl
 
 # 2.Chinese
-bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/chinese/corrected/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/chinese/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/chinese/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Chinese.jsonl
+bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/chinese/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/chinese/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/chinese/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Chinese.jsonl
 
 # 3.Spanish
-bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/spanish/corrected/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/spanish/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/spanish/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Spanish.jsonl
+bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/spanish/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/spanish/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/spanish/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Spanish.jsonl
 
 # 4.French
 bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/french/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/french/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/french/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_French.jsonl
 
 # 6.Russian
-bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/russian/corrected/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/russian/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/russian/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Russian.jsonl
+bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/russian/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/russian/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/russian/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Russian.jsonl
 
 # 7.Arabic
-bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/arabic/corrected/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/arabic/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/arabic/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Arabic.jsonl
+bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/arabic/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/arabic/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/arabic/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Arabic.jsonl
 
 # 8.Bengali
-# bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/bengali/corrected/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/bengali/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/bengali/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Bengali.jsonl
+# bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/bengali/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/bengali/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/bengali/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Bengali.jsonl
 
 # 9.Hindi
-bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/hindi/corrected/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/hindi/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/hindi/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Hindi.jsonl
+bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/hindi/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/hindi/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/hindi/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Hindi.jsonl
 
 # 10.Urdu
-# bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/urdu/corrected/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/urdu/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/urdu/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Urdu.jsonl
+# bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/urdu/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/urdu/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/urdu/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Urdu.jsonl
 
 # 11.Japanese
-bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/japanese/corrected/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/japanese/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/japanese/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Japanese.jsonl
+bash scripts/v1_5/eval/llavabench_palo.sh "$IMAGES" "$MODEL" "$MULTILINGUAL_LLAVA_BENCH_PATH"/japanese/question.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/japanese/corrected/answers.jsonl "$MULTILINGUAL_LLAVA_BENCH_PATH"/japanese/corrected/context.jsonl "$OUTPUT_DIR" "$MODEL_NAME"_Japanese.jsonl
