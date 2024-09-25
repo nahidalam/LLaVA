@@ -27,6 +27,7 @@ def get_eval(content: str, max_tokens: int):
             )
             break
         except openai.error.RateLimitError:
+            print('rate limit error!')
             pass
         except Exception as e:
             print(e)
