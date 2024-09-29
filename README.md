@@ -341,6 +341,7 @@ Training script with DeepSpeed ZeRO-2: [`pretrain.sh`](https://github.com/haotia
 
 - `--mm_projector_type mlp2x_gelu`: the two-layer MLP vision-language connector.
 - `--vision_tower openai/clip-vit-large-patch14-336`: CLIP ViT-L/14 336px.
+- `--unfreeze_text_layers 2`: will unfreeze the number of layers provided as number to this param.
 
 <details>
 <summary>Pretrain takes around 20 hours for LLaVA-7B on 8x V100 (32G)</summary>
