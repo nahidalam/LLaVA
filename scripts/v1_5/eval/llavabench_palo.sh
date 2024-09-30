@@ -19,7 +19,7 @@ python llava/eval/model_vqa_maya.py \
     --image-folder "$IMAGES" \
     --answers-file "$OUTPUT_DIR/$OUTPUT_FILE" \
     --temperature 0 \
-    --conv-mode vicuna_v1
+    --conv-mode aya
 
 mkdir -p "$OUTPUT_DIR/reviews"
 
