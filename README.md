@@ -18,7 +18,7 @@ pip install accelerate==0.27.2
 - Iftekhar
 - Drishti Sushma  https://github.com/DrishtiShrrrma
 - Roshan Santhosh https://github.com/rsk2327
-- Cecilia Liu
+- Cecilia Liu, Snegha, Shayakh, Anthony, Isha
 - Ryan Chan https://github.com/rchan26
 - Sangyeon Kim https://github.com/KimSangYeon-DGU
 - Snehanshu https://github.com/pilot-j
