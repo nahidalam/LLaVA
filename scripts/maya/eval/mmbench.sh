@@ -6,7 +6,7 @@ python -m llava.eval.model_vqa_mmbench \
     --model-path nahidalam/maya_full_ft \
     --model-base CohereForAI/aya-23-8B \
     --question-file ./playground/data/eval/mmbench/$SPLIT.tsv \
-    --answers-file ./playground/data/eval/mmbench/answers/$SPLIT/llava-v1.5-13b.jsonl \
+    --answers-file ./playground/data/eval/mmbench/answers/$SPLIT/maya_full_ft.jsonl \
     --single-pred-prompt \
     --temperature 0 \
     --conv-mode aya
