@@ -145,7 +145,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--model-path", type=str, default="nahidalam/maya_full_ft")
     parser.add_argument("--model-base", type=str, default="CohereForAI/aya-23-8B")
-    parser.add_argument("mode", type=str, default="finetuned")
+    parser.add_argument("--mode", type=str, default="finetuned")
     parser.add_argument("--image-folder", type=str, default="")
     parser.add_argument("--question-file", type=str, default="tables/question.jsonl")
     parser.add_argument("--answers-file", type=str, default="answer.jsonl")
