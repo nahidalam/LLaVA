@@ -91,9 +91,9 @@ def load_maya_model(model_base: str, model_path : str, projector_path : Optional
     else:
         context_len = 2048
 
-    maya = MayaModel(model, tokenizer, image_processor, context_len)
+    #maya = MayaModel(model, tokenizer, image_processor, context_len)
 
-    return maya
+    return model, tokenizer, image_processor, context_len
 
 
 class MayaModel(object):
