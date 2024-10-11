@@ -64,8 +64,29 @@ CUDA_VISIBLE_DEVICES=0 bash scripts/v1_5/eval/vizwiz.sh
 
 ### ScienceQA
 
-1. Under `./playground/data/eval/scienceqa`, download `images`, `pid_splits.json`, `problems.json` from the `data/scienceqa` folder of the ScienceQA [repo](https://github.com/lupantech/ScienceQA).
-2. Single-GPU inference and evaluate.
+1. Under `./playground/data/eval/scienceqa`, download `pid_splits.json`, `problems.json` from the `data/scienceqa` folder of the ScienceQA [repo](https://github.com/lupantech/ScienceQA).
+2. In `./playground/data/eval/scienceqa`:
+    - Create a directory `images`
+    ```
+    mkdir images
+    ```
+    - Download the data splits inside `images`:
+    ```
+    cd images
+    
+    wget https://scienceqa.s3.us-west-1.amazonaws.com/images/train.zip --no-check-certificate
+    wget https://scienceqa.s3.us-west-1.amazonaws.com/images/val.zip --no-check-certificate
+    wget https://scienceqa.s3.us-west-1.amazonaws.com/images/test.zip --no-check-certificate
+
+    unzip -q train.zip
+    unzip -q val.zip
+    unzip -q test.zip
+
+    rm train.zip
+    rm val.zip
+    rm test.zip
+    ```
+3. Single-GPU inference and evaluate.
 ```Shell
 CUDA_VISIBLE_DEVICES=0 bash scripts/v1_5/eval/sqa.sh
 ```
