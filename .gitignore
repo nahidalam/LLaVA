@@ -10,6 +10,12 @@ dist
 *.json
 *.jsonl
 
+# ignore eval.zip (https://github.com/haotian-liu/LLaVA/blob/main/docs/Evaluation.md)
+playground/data/eval/
+
+# ignore venv
+venv/
+
 # Exceptions
 !evaluation/Maya-8B_English.jsonl
 !evaluation/reviews/Maya-8B_English.jsonl
