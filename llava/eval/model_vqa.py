@@ -89,7 +89,8 @@ def eval_model(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model-path", type=str, default="facebook/opt-350m")
+    parser.add_argument("--model-path", type=str, default="nahidalam/maya_full_ft")
+    parser.add_argument("--model-base", type=str, default="CohereForAI/aya-23-8B")
     parser.add_argument("--model-base", type=str, default=None)
     parser.add_argument("--mode", type=str, default="finetuned")
     parser.add_argument("--image-folder", type=str, default="")
