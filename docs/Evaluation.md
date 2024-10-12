@@ -4,6 +4,10 @@ In LLaVA-1.5, we evaluate models on a diverse set of 12 benchmarks. To ensure th
 
 Currently, we mostly utilize the official toolkit or server for the evaluation.
 
+## Setup
+The evaluation scripts in `scripts/maya/eval` will auto-download the fine-tuned Maya from Hugging Face. Make sure you have pip installed `huggingface_hub` and authenticate with an access token with the necessary access. To authenticate, run `huggingface-cli login` and paste in the token.
+
+
 ## Evaluate on Custom Datasets
 
 You can evaluate LLaVA on your custom datasets by converting your dataset to LLaVA's jsonl format, and evaluate using [`model_vqa.py`](https://github.com/haotian-liu/LLaVA/blob/main/llava/eval/model_vqa.py).
@@ -101,20 +105,35 @@ CUDA_VISIBLE_DEVICES=0 bash scripts/v1_5/eval/textvqa.sh
 
 ### POPE
 
-1. Download `coco` from [POPE](https://github.com/AoiDragon/POPE/tree/e3e39262c85a6a83f26cf5094022a782cb0df58d/output/coco) and put under `./playground/data/eval/pope`.
-2. Single-GPU inference and evaluate.
+<!-- 1. Download `coco` from [POPE](https://github.com/AoiDragon/POPE/tree/e3e39262c85a6a83f26cf5094022a782cb0df58d/output/coco) and put under `./playground/data/eval/pope`. -->
+1. Download `coco` from the [POPE repo](https://github.com/AoiDragon/POPE/tree/e3e39262c85a6a83f26cf5094022a782cb0df58d/output). Use the link to the specific version, as the latest version [has changed](https://github.com/haotian-liu/LLaVA/issues/626#issuecomment-1772025961).
+2. Download `val2014` from the [COCO dataset](https://cocodataset.org/#download). [Direct download link](http://images.cocodataset.org/zips/val2014.zip). Unzip to `./playground/data/eval/pope`. Images should be in a folder at `./playground/data/eval/pope/val2014`
+3. After unzipping `eval.zip`, rename `/playground/data/eval/pope/llava_pope_test.jsonl` to `maya_pope_test.jsonl`
+4. Single-GPU inference and evaluate.
 ```Shell
-CUDA_VISIBLE_DEVICES=0 bash scripts/v1_5/eval/pope.sh
+CUDA_VISIBLE_DEVICES=0 bash scripts/maya/eval/pope.sh
 ```
+
+
 
 ### MME
 
 1. Download the data following the official instructions [here](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Evaluation).
-2. Downloaded images to `MME_Benchmark_release_version`.
+    1. You will have to request the dataset authors to access.
+    2. Taken from the [repo](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Evaluation#:~:text=leaderboards%20in%20time.%20%E2%9C%A8-,Download,-MME%20%F0%9F%8C%9F%F0%9F%8C%9F) as of Oct 2024: 
+        > The benchmark dataset is collected by Xiamen University for academic research only. You can email yongdongluo@stu.xmu.edu.cn to obtain the dataset, according to the following requirement.Requirement: A real-name system is encouraged for better academic communication. Your email suffix needs to match your affiliation, such as xx@stu.xmu.edu.cn and Xiamen University. Otherwise, you need to explain why. Please include the information bellow when sending your application email.
+        ```
+        Name: (tell us who you are.)
+        Affiliation: (the name/url of your university or company)
+        Job Title: (e.g., professor, PhD, and researcher)
+        Email: (your email address)
+        How to use: (only for non-commercial use)
+        ```
+2. Download images to `MME_Benchmark_release_version`.
 3. put the official `eval_tool` and `MME_Benchmark_release_version` under `./playground/data/eval/MME`.
 4. Single-GPU inference and evaluate.
 ```Shell
-CUDA_VISIBLE_DEVICES=0 bash scripts/v1_5/eval/mme.sh
+CUDA_VISIBLE_DEVICES=0 bash scripts/maya/eval/mme.sh
 ```
 
 ### MMBench
