@@ -2,7 +2,7 @@
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../" && pwd)"
 
-LOAD_MME_PY="$PROJECT_ROOT/llava/eval/maya/load_mme.py"
+# LOAD_MME_PY="$PROJECT_ROOT/llava/eval/maya/load_mme.py"
 MODEL_VQA_LOADER_PY="$PROJECT_ROOT/llava/eval/model_vqa_loader.py"
 CONVERT_ANSWER_TO_MME_PY="$PROJECT_ROOT/playground/data/eval/MME/convert_answer_to_mme.py"
 MME_CALCULATE_PY="$PROJECT_ROOT/llava/eval/maya/calculate_mme.py"
@@ -10,7 +10,7 @@ MME_CALCULATE_PY="$PROJECT_ROOT/llava/eval/maya/calculate_mme.py"
 
 cd "$PROJECT_ROOT"
 
-python "$LOAD_MME_PY"
+# python "$LOAD_MME_PY"
 
 python -m llava.eval.model_vqa_loader \
     --model-path "nahidalam/maya_full_ft" \
