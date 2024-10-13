@@ -109,7 +109,7 @@ CUDA_VISIBLE_DEVICES=0 bash scripts/maya/eval/pope.sh
         How to use: (only for non-commercial use)
         ```
 2. Download images to `MME_Benchmark_release_version`.
-3. put the official `eval_tool` and `MME_Benchmark_release_version` under `./playground/data/eval/MME`.
+3. put the official `eval_tool` folder and `MME_Benchmark_release_version` under `./playground/data/eval/MME`.
 4. Single-GPU inference and evaluate.
 ```Shell
 CUDA_VISIBLE_DEVICES=0 bash scripts/maya/eval/mme.sh
