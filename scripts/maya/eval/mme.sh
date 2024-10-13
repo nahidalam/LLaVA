@@ -12,7 +12,6 @@ MME_CALCULATE_PY="$PROJECT_ROOT/llava/eval/maya/calculate_mme.py"
 
 cd "$PROJECT_ROOT"
 
-echo "Running load_mme.py..."
 python "$LOAD_MME_PY"
 
 python -m llava.eval.model_vqa_loader \
