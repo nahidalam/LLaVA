@@ -1,0 +1,207 @@
+=========== Perception ===========
+====existence====
+TP: 28
+FN: 2
+TN: 28
+FP: 2
+precision: 0.9333333333333333
+recall: 0.9333333333333333
+f1: 0.9333333333333333
+yes_ratio: 0.5
+other_num: 0
+acc: 0.9333333333333333
+acc_plus: 0.8666666666666667
+====count====
+TP: 28
+FN: 2
+TN: 15
+FP: 15
+precision: 0.6511627906976745
+recall: 0.9333333333333333
+f1: 0.767123287671233
+yes_ratio: 0.5
+other_num: 0
+acc: 0.7166666666666667
+acc_plus: 0.4666666666666667
+====position====
+TP: 27
+FN: 3
+TN: 18
+FP: 12
+precision: 0.6923076923076923
+recall: 0.9
+f1: 0.7826086956521738
+yes_ratio: 0.5
+other_num: 0
+acc: 0.75
+acc_plus: 0.5666666666666667
+====color====
+TP: 28
+FN: 2
+TN: 21
+FP: 9
+precision: 0.7567567567567568
+recall: 0.9333333333333333
+f1: 0.835820895522388
+yes_ratio: 0.5
+other_num: 0
+acc: 0.8166666666666667
+acc_plus: 0.6333333333333333
+====posters====
+TP: 90
+FN: 48
+TN: 128
+FP: 19
+precision: 0.8256880733944955
+recall: 0.6521739130434783
+f1: 0.728744939271255
+yes_ratio: 0.4842105263157895
+other_num: 9
+acc: 0.7414965986394558
+acc_plus: 0.5306122448979592
+====celebrity====
+TP: 150
+FN: 20
+TN: 72
+FP: 98
+precision: 0.6048387096774194
+recall: 0.8823529411764706
+f1: 0.7177033492822966
+yes_ratio: 0.5
+other_num: 0
+acc: 0.6529411764705882
+acc_plus: 0.3588235294117647
+====scene====
+TP: 161
+FN: 38
+TN: 179
+FP: 21
+precision: 0.8846153846153846
+recall: 0.8090452261306532
+f1: 0.8451443569553806
+yes_ratio: 0.49874686716791977
+other_num: 1
+acc: 0.85
+acc_plus: 0.725
+====landmark====
+TP: 126
+FN: 74
+TN: 176
+FP: 24
+precision: 0.84
+recall: 0.63
+f1: 0.72
+yes_ratio: 0.5
+other_num: 0
+acc: 0.755
+acc_plus: 0.535
+====artwork====
+TP: 157
+FN: 36
+TN: 95
+FP: 89
+precision: 0.6382113821138211
+recall: 0.8134715025906736
+f1: 0.7152619589977222
+yes_ratio: 0.5119363395225465
+other_num: 23
+acc: 0.63
+acc_plus: 0.35
+====OCR====
+TP: 19
+FN: 1
+TN: 4
+FP: 16
+precision: 0.5428571428571428
+recall: 0.95
+f1: 0.6909090909090908
+yes_ratio: 0.5
+other_num: 0
+acc: 0.575
+acc_plus: 0.2
+
+
+total score: 1265.3873549419768 
+
+existence  score: 180.0
+count  score: 118.33333333333334
+position  score: 131.66666666666666
+color  score: 145.0
+posters  score: 127.2108843537415
+celebrity  score: 101.1764705882353
+scene  score: 157.5
+landmark  score: 129.0
+artwork  score: 98.0
+OCR  score: 77.5
+
+
+=========== Cognition ===========
+====commonsense_reasoning====
+TP: 53
+FN: 17
+TN: 53
+FP: 17
+precision: 0.7571428571428571
+recall: 0.7571428571428571
+f1: 0.7571428571428571
+yes_ratio: 0.5
+other_num: 0
+acc: 0.7571428571428571
+acc_plus: 0.5571428571428572
+====numerical_calculation====
+TP: 15
+FN: 5
+TN: 4
+FP: 16
+precision: 0.4838709677419355
+recall: 0.75
+f1: 0.5882352941176471
+yes_ratio: 0.5
+other_num: 0
+acc: 0.475
+acc_plus: 0.1
+====text_translation====
+TP: 3
+FN: 17
+TN: 18
+FP: 2
+precision: 0.6
+recall: 0.15
+f1: 0.24
+yes_ratio: 0.5
+other_num: 0
+acc: 0.525
+acc_plus: 0.1
+====code_reasoning====
+TP: 13
+FN: 7
+TN: 11
+FP: 9
+precision: 0.5909090909090909
+recall: 0.65
+f1: 0.6190476190476191
+yes_ratio: 0.5
+other_num: 0
+acc: 0.6
+acc_plus: 0.25
+
+
+total score: 336.42857142857144 
+
+commonsense_reasoning  score: 131.42857142857142
+numerical_calculation  score: 57.5
+text_translation  score: 62.5
+code_reasoning  score: 85.0
+
+
+==== Overall Metrics Across All Responses ====
+TP: 898
+FN: 272
+TN: 822
+FP: 349
+precision: 0.7201283079390537
+recall: 0.7675213675213676
+f1: 0.7430699213901532
+yes_ratio: 0.4997864160615122
+other_num: 33
+acc: 0.7245155855096883

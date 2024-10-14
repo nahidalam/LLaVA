@@ -97,7 +97,7 @@ CUDA_VISIBLE_DEVICES=0 bash scripts/maya/eval/pope.sh
 
 ### MME
 
-1. Download the data following the official instructions [here](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Evaluation).
+<!-- 1. Download the data following the official instructions [here](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Evaluation).
     1. You will have to request the dataset authors to access.
     2. Taken from the [repo](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Evaluation#:~:text=leaderboards%20in%20time.%20%E2%9C%A8-,Download,-MME%20%F0%9F%8C%9F%F0%9F%8C%9F) as of Oct 2024: 
         > The benchmark dataset is collected by Xiamen University for academic research only. You can email yongdongluo@stu.xmu.edu.cn to obtain the dataset, according to the following requirement.Requirement: A real-name system is encouraged for better academic communication. Your email suffix needs to match your affiliation, such as xx@stu.xmu.edu.cn and Xiamen University. Otherwise, you need to explain why. Please include the information bellow when sending your application email.
@@ -108,9 +108,10 @@ CUDA_VISIBLE_DEVICES=0 bash scripts/maya/eval/pope.sh
         Email: (your email address)
         How to use: (only for non-commercial use)
         ```
-2. Download images to `MME_Benchmark_release_version`.
-3. put the official `eval_tool` and `MME_Benchmark_release_version` under `./playground/data/eval/MME`.
-4. Single-GPU inference and evaluate.
+2. Download images to `MME_Benchmark_release_version`. -->
+1. Run `scripts/maya/eval/load_mme.sh` to load data from Hugging Face.
+2. put the official `eval_tool` [folder](https://github.com/BradyFU/Awesome-Multimodal-Large-Language-Models/tree/Evaluation/tools) under `./playground/data/eval/MME`.
+3. Single-GPU inference and evaluate.
 ```Shell
 CUDA_VISIBLE_DEVICES=0 bash scripts/maya/eval/mme.sh
 ```
