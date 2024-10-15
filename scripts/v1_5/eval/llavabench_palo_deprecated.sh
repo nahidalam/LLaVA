@@ -1,3 +1,8 @@
+# This script for PALO Multilingual LLaVA Bench In-the-Wild Benchmark is deprecated. 
+# Please use the new script at LLaVA/scripts/maya/eval/palo_multilingual_llava_bench.sh
+
+
+
 #!/bin/bash
 
 IMAGES=$1
