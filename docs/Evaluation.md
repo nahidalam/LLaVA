@@ -59,10 +59,10 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 bash scripts/v1_5/eval/gqa.sh
 
 ### VisWiz
 
-1. Download [`test.json`](https://vizwiz.cs.colorado.edu/VizWiz_final/vqa_data/Annotations.zip) and extract [`test.zip`](https://vizwiz.cs.colorado.edu/VizWiz_final/images/test.zip) to `test`. Put them under `./playground/data/eval/vizwiz`.
+1. Download [`test.json`](https://vizwiz.cs.colorado.edu/VizWiz_final/vqa_data/Annotations.zip) and extract [`test.zip`](https://vizwiz.cs.colorado.edu/VizWiz_final/images/test.zip) to `test`. Put them under `./playground/data/eval/vizwiz`. You may ingore any vizwiz files (jsonl) from the LLaVA zip file.
 2. Single-GPU inference.
 ```Shell
-CUDA_VISIBLE_DEVICES=0 bash scripts/v1_5/eval/vizwiz.sh
+CUDA_VISIBLE_DEVICES=0 bash scripts/maya/eval/vizwiz.sh
 ```
 3. Submit the results to the [evaluation server](https://eval.ai/web/challenges/challenge-page/2185/my-submission): `./playground/data/eval/vizwiz/answers_upload`.
 
