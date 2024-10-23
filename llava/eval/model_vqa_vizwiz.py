@@ -52,6 +52,11 @@ class CustomDataset(Dataset):
         line = self.questions[index]
         image_file = line["image"]
         qs = line["question"]
+        # NOTE: according to the origina LLaVA repo's eval
+        # this is taken from eval.zip (https://drive.google.com/file/d/1atZSBBrAX54yYpxtVVW33zFvcnaHeFPy/view?usp=sharing)
+        
+        # Additional prompting is needed to allow the model output to fit the eval.ai VizWiz VQA Challenge 2024 https://eval.ai/web/challenges/challenge-page/2185/
+        qs += "\nWhen the provided information is insufficient, respond with 'Unanswerable'.\nAnswer the question using a single word or phrase."
         if self.model_config.mm_use_im_start_end:
             qs = (
                 DEFAULT_IM_START_TOKEN
@@ -156,9 +161,11 @@ def eval_model(args):
     # Create the data loader
     data_loader = create_data_loader(questions, args.image_folder, tokenizer, image_processor, model.config)
 
+
     # Loop through the data loader and generate answers
     for (input_ids, image_tensor, image_sizes), line in tqdm(zip(data_loader, questions), total=len(questions)):
-        idx = line["question"]
+        
+        idx = line["question"] + "_" + line["image"]
         cur_prompt = line["question"]
 
         input_ids = input_ids.to(device='cuda', non_blocking=True)
