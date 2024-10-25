@@ -12,7 +12,8 @@ def get_eval(content: str, max_tokens: int):
     while True:
         try:
             response = openai.ChatCompletion.create(
-                model='gpt-4o-mini', #gpt-4-0314
+                #model='gpt-4o-mini', #gpt-4-0314
+                model='gpt-4-0613',
                 messages=[{
                     'role': 'system',
                     'content': 'You are a helpful and precise assistant for checking the quality of the answer.'
@@ -43,7 +44,14 @@ def parse_score(review):
             return [float(sp[0]), float(sp[1])]
         else:
             print('error', review)
-            return [-1, -1]
+            print(f"Warning: Unexpected score format. Original format: {sp}")
+            corrected_sp = sp[:2]
+            try:
+                print(f"Attempting to use: {corrected_sp}")
+                return [float(corrected_sp[0]), float(corrected_sp[1])]
+            except (ValueError, TypeError):
+                print(f"Unable to parse scores. Returning default [-1, -1]")
+                return [-1, -1] 
     except Exception as e:
         print(e)
         print('error', review)

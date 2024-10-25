@@ -15,7 +15,7 @@ pip install accelerate==0.27.2
 ## Contributors
 - Team Leads: Nahid, Karthik, Surya
 - Satya https://github.com/Satyajitv
-- Iftekhar
+- Iftekhar Uddin https://github.com/iuddin
 - Drishti Sushma  https://github.com/DrishtiShrrrma
 - Roshan Santhosh https://github.com/rsk2327
 - Cecilia Liu, Snegha, Shayakh, Anthony, Isha
