@@ -1,5 +1,11 @@
-=========== Perception ===========
-====existence====
+WARNING: 1 ground truths were missing during eval and defaulted to 'Yes'. This will lead to inaccurate eval.
+-------------Summary of Missing Prompts-------------
+Category: code_reasoning, File: 0020.txt, Prompt: Is a c++ code shown in the picture?  Please answer yes or no.
+
+
+
+================= Perception =================
+#-------existence-------#
 TP: 28
 FN: 2
 TN: 28
@@ -11,7 +17,7 @@ yes_ratio: 0.5
 other_num: 0
 acc: 0.9333333333333333
 acc_plus: 0.8666666666666667
-====count====
+#-------count-------#
 TP: 28
 FN: 2
 TN: 15
@@ -23,7 +29,7 @@ yes_ratio: 0.5
 other_num: 0
 acc: 0.7166666666666667
 acc_plus: 0.4666666666666667
-====position====
+#-------position-------#
 TP: 27
 FN: 3
 TN: 18
@@ -35,7 +41,7 @@ yes_ratio: 0.5
 other_num: 0
 acc: 0.75
 acc_plus: 0.5666666666666667
-====color====
+#-------color-------#
 TP: 28
 FN: 2
 TN: 21
@@ -47,7 +53,7 @@ yes_ratio: 0.5
 other_num: 0
 acc: 0.8166666666666667
 acc_plus: 0.6333333333333333
-====posters====
+#-------posters-------#
 TP: 90
 FN: 48
 TN: 128
@@ -59,7 +65,7 @@ yes_ratio: 0.4842105263157895
 other_num: 9
 acc: 0.7414965986394558
 acc_plus: 0.5306122448979592
-====celebrity====
+#-------celebrity-------#
 TP: 150
 FN: 20
 TN: 72
@@ -71,7 +77,7 @@ yes_ratio: 0.5
 other_num: 0
 acc: 0.6529411764705882
 acc_plus: 0.3588235294117647
-====scene====
+#-------scene-------#
 TP: 161
 FN: 38
 TN: 179
@@ -83,7 +89,7 @@ yes_ratio: 0.49874686716791977
 other_num: 1
 acc: 0.85
 acc_plus: 0.725
-====landmark====
+#-------landmark-------#
 TP: 126
 FN: 74
 TN: 176
@@ -95,7 +101,7 @@ yes_ratio: 0.5
 other_num: 0
 acc: 0.755
 acc_plus: 0.535
-====artwork====
+#-------artwork-------#
 TP: 157
 FN: 36
 TN: 95
@@ -107,7 +113,7 @@ yes_ratio: 0.5119363395225465
 other_num: 23
 acc: 0.63
 acc_plus: 0.35
-====OCR====
+#-------OCR-------#
 TP: 19
 FN: 1
 TN: 4
@@ -121,22 +127,22 @@ acc: 0.575
 acc_plus: 0.2
 
 
-total score: 1265.3873549419768 
+Total Score: 1265.3873549419768 
 
-existence  score: 180.0
-count  score: 118.33333333333334
-position  score: 131.66666666666666
-color  score: 145.0
-posters  score: 127.2108843537415
-celebrity  score: 101.1764705882353
-scene  score: 157.5
-landmark  score: 129.0
-artwork  score: 98.0
-OCR  score: 77.5
+existence score: 180.0
+count score: 118.33333333333334
+position score: 131.66666666666666
+color score: 145.0
+posters score: 127.2108843537415
+celebrity score: 101.1764705882353
+scene score: 157.5
+landmark score: 129.0
+artwork score: 98.0
+OCR score: 77.5
 
 
-=========== Cognition ===========
-====commonsense_reasoning====
+================= Cognition =================
+#-------commonsense_reasoning-------#
 TP: 53
 FN: 17
 TN: 53
@@ -148,7 +154,7 @@ yes_ratio: 0.5
 other_num: 0
 acc: 0.7571428571428571
 acc_plus: 0.5571428571428572
-====numerical_calculation====
+#-------numerical_calculation-------#
 TP: 15
 FN: 5
 TN: 4
@@ -160,7 +166,7 @@ yes_ratio: 0.5
 other_num: 0
 acc: 0.475
 acc_plus: 0.1
-====text_translation====
+#-------text_translation-------#
 TP: 3
 FN: 17
 TN: 18
@@ -172,7 +178,7 @@ yes_ratio: 0.5
 other_num: 0
 acc: 0.525
 acc_plus: 0.1
-====code_reasoning====
+#-------code_reasoning-------#
 TP: 13
 FN: 7
 TN: 11
@@ -186,12 +192,12 @@ acc: 0.6
 acc_plus: 0.25
 
 
-total score: 336.42857142857144 
+Total Score: 336.42857142857144 
 
-commonsense_reasoning  score: 131.42857142857142
-numerical_calculation  score: 57.5
-text_translation  score: 62.5
-code_reasoning  score: 85.0
+commonsense_reasoning score: 131.42857142857142
+numerical_calculation score: 57.5
+text_translation score: 62.5
+code_reasoning score: 85.0
 
 
 ==== Overall Metrics Across All Responses ====

@@ -1,0 +1,213 @@
+WARNING: 1 ground truths were missing during eval and defaulted to 'Yes'. This will lead to inaccurate eval.
+-------------Summary of Missing Prompts-------------
+Category: code_reasoning, File: 0020.txt, Prompt: Is a c++ code shown in the picture?  Please answer yes or no.
+
+
+
+================= Perception =================
+#-------existence-------#
+TP: 29
+FN: 1
+TN: 30
+FP: 0
+precision: 1.0
+recall: 0.9666666666666667
+f1: 0.983050847457627
+yes_ratio: 0.5
+other_num: 0
+acc: 0.9833333333333333
+acc_plus: 0.9666666666666667
+#-------count-------#
+TP: 26
+FN: 4
+TN: 20
+FP: 10
+precision: 0.7222222222222222
+recall: 0.8666666666666667
+f1: 0.7878787878787877
+yes_ratio: 0.5
+other_num: 0
+acc: 0.7666666666666667
+acc_plus: 0.5666666666666667
+#-------position-------#
+TP: 27
+FN: 3
+TN: 11
+FP: 19
+precision: 0.5869565217391305
+recall: 0.9
+f1: 0.7105263157894737
+yes_ratio: 0.5
+other_num: 0
+acc: 0.6333333333333333
+acc_plus: 0.36666666666666664
+#-------color-------#
+TP: 30
+FN: 0
+TN: 22
+FP: 8
+precision: 0.7894736842105263
+recall: 1.0
+f1: 0.8823529411764706
+yes_ratio: 0.5
+other_num: 0
+acc: 0.8666666666666667
+acc_plus: 0.7333333333333333
+#-------posters-------#
+TP: 88
+FN: 58
+TN: 132
+FP: 14
+precision: 0.8627450980392157
+recall: 0.6027397260273972
+f1: 0.7096774193548387
+yes_ratio: 0.5
+other_num: 2
+acc: 0.7482993197278912
+acc_plus: 0.54421768707483
+#-------celebrity-------#
+TP: 124
+FN: 46
+TN: 111
+FP: 59
+precision: 0.6775956284153005
+recall: 0.7294117647058823
+f1: 0.7025495750708215
+yes_ratio: 0.5
+other_num: 0
+acc: 0.6911764705882353
+acc_plus: 0.4588235294117647
+#-------scene-------#
+TP: 164
+FN: 36
+TN: 183
+FP: 17
+precision: 0.9060773480662984
+recall: 0.82
+f1: 0.8608923884514436
+yes_ratio: 0.5
+other_num: 0
+acc: 0.8675
+acc_plus: 0.755
+#-------landmark-------#
+TP: 61
+FN: 139
+TN: 199
+FP: 1
+precision: 0.9838709677419355
+recall: 0.305
+f1: 0.46564885496183206
+yes_ratio: 0.5
+other_num: 0
+acc: 0.65
+acc_plus: 0.3
+#-------artwork-------#
+TP: 141
+FN: 51
+TN: 121
+FP: 65
+precision: 0.6844660194174758
+recall: 0.734375
+f1: 0.7085427135678393
+yes_ratio: 0.5079365079365079
+other_num: 22
+acc: 0.655
+acc_plus: 0.4
+#-------OCR-------#
+TP: 19
+FN: 1
+TN: 8
+FP: 12
+precision: 0.6129032258064516
+recall: 0.95
+f1: 0.7450980392156863
+yes_ratio: 0.5
+other_num: 0
+acc: 0.675
+acc_plus: 0.4
+
+
+Total Score: 1302.8350340136055 
+
+existence score: 195.0
+count score: 133.33333333333334
+position score: 100.0
+color score: 160.0
+posters score: 129.2517006802721
+celebrity score: 115.0
+scene score: 162.25
+landmark score: 95.0
+artwork score: 105.5
+OCR score: 107.5
+
+
+================= Cognition =================
+#-------commonsense_reasoning-------#
+TP: 54
+FN: 16
+TN: 42
+FP: 28
+precision: 0.6585365853658537
+recall: 0.7714285714285715
+f1: 0.7105263157894737
+yes_ratio: 0.5
+other_num: 0
+acc: 0.6857142857142857
+acc_plus: 0.44285714285714284
+#-------numerical_calculation-------#
+TP: 15
+FN: 5
+TN: 5
+FP: 15
+precision: 0.5
+recall: 0.75
+f1: 0.6
+yes_ratio: 0.5
+other_num: 0
+acc: 0.5
+acc_plus: 0.15
+#-------text_translation-------#
+TP: 5
+FN: 15
+TN: 17
+FP: 3
+precision: 0.625
+recall: 0.25
+f1: 0.35714285714285715
+yes_ratio: 0.5
+other_num: 0
+acc: 0.55
+acc_plus: 0.2
+#-------code_reasoning-------#
+TP: 13
+FN: 7
+TN: 10
+FP: 10
+precision: 0.5652173913043478
+recall: 0.65
+f1: 0.6046511627906976
+yes_ratio: 0.5
+other_num: 0
+acc: 0.575
+acc_plus: 0.2
+
+
+Total Score: 330.3571428571429 
+
+commonsense_reasoning score: 112.85714285714286
+numerical_calculation score: 65.0
+text_translation score: 75.0
+code_reasoning score: 77.5
+
+
+==== Overall Metrics Across All Responses ====
+TP: 796
+FN: 382
+TN: 911
+FP: 261
+precision: 0.7530747398297067
+recall: 0.6757215619694398
+f1: 0.712304250559284
+yes_ratio: 0.5012765957446809
+other_num: 24
+acc: 0.719039595619208
