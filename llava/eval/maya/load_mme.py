@@ -37,7 +37,7 @@ def main():
         image_name = os.path.basename(question_id)
         image_basename = os.path.splitext(image_name)[0]
         
-        # Special case handling
+        # Special case handling – one entry on HuggingFace is different than the LLaVA repo
         if category == 'code_reasoning' and image_basename == '0020':
             question = "Is a python code shown in the picture? Please answer yes or no."
         

@@ -9,14 +9,14 @@ python -m llava.eval.model_vqa_vizwiz \
     --temperature 0 \
     --conv-mode aya
 
-# python -m llava.eval.model_vqa_loader \
-#     --model-path nahidalam/maya_full_ft \
-#     --model-base CohereForAI/aya-23-8B \
-#     --question-file ./playground/data/eval/vizwiz/llava_test_short.jsonl \
-#     --image-folder  ./playground/data/eval/vizwiz/test \
-#     --answers-file  ./playground/data/eval/vizwiz/answers/maya.jsonl \
-#     --temperature 0 \
-#     --conv-mode aya
+python -m llava.eval.model_vqa_loader \
+    --model-path nahidalam/maya_full_ft \
+    --model-base CohereForAI/aya-23-8B \
+    --question-file ./playground/data/eval/vizwiz/llava_test_short.jsonl \
+    --image-folder  ./playground/data/eval/vizwiz/test \
+    --answers-file  ./playground/data/eval/vizwiz/answers/maya.jsonl \
+    --temperature 0 \
+    --conv-mode aya
 
 
 python scripts/convert_vizwiz_for_submission.py \
