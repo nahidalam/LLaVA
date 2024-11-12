@@ -1,3 +1,6 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"  # Limit visibility to only GPU 0
+
 # Global Variables (Model, Tokenizer, Image Processor)
 model_base = "CohereForAI/aya-23-8B"
 model_path = "nahidalam/maya_full_ft"  # toxicity-free: nahidalam/maya_toxicity_free_finetuned
@@ -5,10 +8,8 @@ mode = "finetuned"  # Options: 'finetuned' or 'pretrained'
 projector_path = None  # Required if mode is 'pretrained'
 
 import torch
-import os
 import argparse
 from PIL import Image
-import matplotlib.pyplot as plt
 import textwrap
 
 from llava.constants import (
@@ -22,12 +23,11 @@ from llava.eval.maya.eval_utils import load_maya_model
 from llava.utils import disable_torch_init
 from llava.mm_utils import tokenizer_image_token, process_images
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-# Specify the device to ensure all tensors are on the same GPU
-#device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # Disable Torch initialization to save memory
 disable_torch_init()
+
+# Specify the device to use
+device = torch.device("cuda:0")
 
 def load_model(model_base, model_path, mode="finetuned", projector_path=None):
     """
@@ -44,10 +44,17 @@ def load_model(model_base, model_path, mode="finetuned", projector_path=None):
         model_base, model_path, projector_path if mode == "pretrained" else None, mode
     )
 
-    # Move model to the specified device and set to evaluation mode
-    #model = model.half().to(device)
-    model = model.half().cuda()
+    # Move model to specified device and set to evaluation mode
+    model = model.half().to(device)
     model.eval()
+    
+    # Ensure all parameters and buffers are on the same device
+    for param in model.parameters():
+        param.data = param.data.to(device)
+        if param._grad is not None:
+            param._grad.data = param._grad.data.to(device)
+    for buffer in model.buffers():
+        buffer.data = buffer.data.to(device)
 
     return model, tokenizer, image_processor
 
@@ -108,25 +115,18 @@ def run_vqa_model(
     input_ids = (
         tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors="pt")
         .unsqueeze(0)
-        .cuda()
+        .to(device)
     )
 
     # Open and process the image
     image = Image.open(image_file).convert("RGB")
-    image_tensor = process_images([image], image_processor, model.config)[0]
-
-    # Plot the image
-    #plt.figure(figsize=(8, 8))
-    #plt.imshow(image)
-    #plt.axis("off")
-    #plt.title("Input Image")
-    #plt.show()
+    image_tensor = process_images([image], image_processor, model.config)[0].to(device)
 
     # Generate the answer using the model
     with torch.inference_mode():
         output_ids = model.generate(
             input_ids,
-            images=image_tensor.unsqueeze(0).half().cuda(),
+            images=image_tensor.unsqueeze(0),
             image_sizes=[image.size],
             do_sample=True if temperature > 0 else False,
             temperature=temperature,
