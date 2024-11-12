@@ -89,13 +89,13 @@ evaluate_language "Russian" "$MULTILINGUAL_LLAVA_BENCH_PATH/russian/question.jso
 evaluate_language "Arabic" "$MULTILINGUAL_LLAVA_BENCH_PATH/arabic/question.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/arabic/answers.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/arabic/context.jsonl"
 
 # 7.Bengali -- Not currently supported
-# evaluate_language "Bengali" "$MULTILINGUAL_LLAVA_BENCH_PATH/bengali/question.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/bengali/answers.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/bengali/context.jsonl"
+evaluate_language "Bengali" "$MULTILINGUAL_LLAVA_BENCH_PATH/bengali/question.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/bengali/answers.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/bengali/context.jsonl"
 
 # 8.Hindi
 evaluate_language "Hindi" "$MULTILINGUAL_LLAVA_BENCH_PATH/hindi/question.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/hindi/answers.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/hindi/context.jsonl"
 
 # 9.Urdu -- Not currently supported
-# evaluate_language "Urdu" "$MULTILINGUAL_LLAVA_BENCH_PATH/urdu/question.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/urdu/answers.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/urdu/context.jsonl"
+evaluate_language "Urdu" "$MULTILINGUAL_LLAVA_BENCH_PATH/urdu/question.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/urdu/answers.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/urdu/context.jsonl"
 
 # 10.Japanese
 evaluate_language "Japanese" "$MULTILINGUAL_LLAVA_BENCH_PATH/japanese/question.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/japanese/answers.jsonl" "$MULTILINGUAL_LLAVA_BENCH_PATH/japanese/context.jsonl"
