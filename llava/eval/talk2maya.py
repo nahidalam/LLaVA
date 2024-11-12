@@ -22,8 +22,9 @@ from llava.eval.maya.eval_utils import load_maya_model
 from llava.utils import disable_torch_init
 from llava.mm_utils import tokenizer_image_token, process_images
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 # Specify the device to ensure all tensors are on the same GPU
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Disable Torch initialization to save memory
 disable_torch_init()
@@ -44,7 +45,7 @@ def load_model(model_base, model_path, mode="finetuned", projector_path=None):
     )
 
     # Move model to the specified device and set to evaluation mode
-    model = model.half().cuda()
+    model = model.half().to(device)
     model.eval()
 
     return model, tokenizer, image_processor
@@ -111,7 +112,7 @@ def run_vqa_model(
 
     # Open and process the image
     image = Image.open(image_file).convert("RGB")
-    image_tensor = process_images([image], image_processor, model.config)[0]
+    image_tensor = process_images([image], image_processor, model.config)[0].to(device)
 
     # Plot the image
     #plt.figure(figsize=(8, 8))
@@ -124,7 +125,7 @@ def run_vqa_model(
     with torch.inference_mode():
         output_ids = model.generate(
             input_ids,
-            images=image_tensor.unsqueeze(0).half().cuda(),
+            images=image_tensor.unsqueeze(0).half().to(device),
             image_sizes=[image.size],
             do_sample=True if temperature > 0 else False,
             temperature=temperature,
