@@ -183,6 +183,28 @@ CUDA_VISIBLE_DEVICES=0 bash scripts/v1_5/eval/mmvet.sh
 ```
 3. Evaluate the predictions in `./playground/data/eval/mmvet/results` using the official jupyter notebook.
 
+
+### HallusionBench
+
+1. Download the images zipped folder [`hallusion_bench.zip`](https://drive.google.com/file/d/1eeO1i0G9BSZTE1yd5XeFwmrbe1hwyf_0/view?usp=sharing) and the json file [`HallusionBench.json`](https://raw.githubusercontent.com/tianyi-lab/HallusionBench/refs/heads/main/HallusionBench.json) to `./playground/data/eval/hallusion-bench` with:
+    ```Shell
+    gdown https://drive.google.com/uc?id=1eeO1i0G9BSZTE1yd5XeFwmrbe1hwyf_0
+    wget https://raw.githubusercontent.com/tianyi-lab/HallusionBench/refs/heads/main/HallusionBench.json
+    ```
+2. Unzip `hallusion_bench.zip` into `./playground/data/eval/hallusion-bench/images` with:
+    ```Shell
+    unzip hallusion_bench.zip -d ./playground/data/eval/hallusion-bench/images
+    ```
+3. Download the `evaluation.py` and `utils.py` scripts from the [HallusionBench GitHub](https://github.com/tianyi-lab/HallusionBench/tree/main) to `./playground/data/eval/hallusion-bench` using:
+    ```Shell
+    wget https://raw.githubusercontent.com/tianyi-lab/HallusionBench/refs/heads/main/evaluation.py
+    wget https://raw.githubusercontent.com/tianyi-lab/HallusionBench/refs/heads/main/utils.py
+    ```
+4. Multi-GPU inference:
+```Shell
+CUDA_VISIBLE_DEVICES=0,1 bash scripts/v1_5/eval/hallusionbench.sh
+```
+
 ## More Benchmarks
 
 Below are awesome benchmarks for multimodal understanding from the research community, that are not initially included in the LLaVA-1.5 release.
