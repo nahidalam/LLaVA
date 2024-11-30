@@ -13,7 +13,7 @@ from PIL import Image
 from transformers import AutoTokenizer, AutoConfig, TextStreamer
 from transformers.models.cohere.tokenization_cohere_fast import CohereTokenizerFast
 from llava.model.language_model.llava_cohere import LlavaCohereForCausalLM, LlavaCohereConfig
-from llava.constants import IGNORE_INDEX, IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
+from llava.constants import IGNORE_INDEX, IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN, DEFAULT_IMAGE_PATCH_TOKEN
 from llava.conversation import conv_templates, SeparatorStyle
 from llava.mm_utils import process_images, tokenizer_image_token, get_model_name_from_path
 
@@ -104,7 +104,10 @@ class MayaModel(object):
         self.image_processor = image_processor
         self.context_length = context_length
 
-    def validate_inputs():
+    def validate_inputs(self):
+        """
+        Method to validate the inputs
+        """
         pass
 
 
@@ -123,7 +126,7 @@ def load_image(image_input):
                 # Input is a URL
                 response = requests.get(image_input)
                 response.raise_for_status()  # Raise an exception for bad responses
-                return Image.open(io.BytesIO(response.content))
+                return Image.open(BytesIO(response.content))
             elif os.path.isfile(image_input):
                 # Input is a file path
                 return Image.open(image_input)
@@ -131,7 +134,7 @@ def load_image(image_input):
                 raise ValueError("Invalid input: string is neither a valid URL nor a file path")
         elif isinstance(image_input, bytes):
             # Input is bytes
-            return Image.open(io.BytesIO(image_input))
+            return Image.open(BytesIO(image_input))
         else:
             raise ValueError("Invalid input type. Expected URL string, file path string, or bytes.")
     except requests.RequestException as e:
