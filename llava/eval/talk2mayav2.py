@@ -1,6 +1,6 @@
 # Global Variables (Model, Tokenizer, Image Processor)
 model_base = "CohereForAI/aya-23-8B"
-model_path = "nahidalam/maya_full_ft" # toxicity-free: nahidalam/maya_toxicity_free_finetuned
+model_path = "maya-multimodal/maya" # toxicity-free: nahidalam/maya_toxicity_free_finetuned
 mode = "finetuned"  # Options: 'finetuned' or 'pretrained'
 projector_path = None  # Required if mode is 'pretrained'
 
@@ -36,7 +36,7 @@ def load_model(model_base, model_path, mode="finetuned", projector_path=None):
     if mode == "pretrained" and projector_path is None:
         raise ValueError("Error: Projector path is required when mode is 'pretrained'")
 
-    model, tokenizer, image_processor, content_len = load_maya_model(
+    model, tokenizer, image_processor, _ = load_maya_model(
         model_base, model_path, projector_path if mode == "pretrained" else None, mode
     )
 
