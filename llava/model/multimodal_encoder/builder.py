@@ -1,6 +1,7 @@
 import os
 from .clip_encoder import CLIPVisionTower, CLIPVisionTowerS2
 from .siglip_encoder import SiglipVisionTower
+from .aimv2_encoder import AIMv2VisionTower
 
 def build_vision_tower(vision_tower_cfg, **kwargs):
     vision_tower = getattr(vision_tower_cfg, 'mm_vision_tower', getattr(vision_tower_cfg, 'vision_tower', None))
