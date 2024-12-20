@@ -777,6 +777,8 @@ class LazySupervisedDataset(Dataset):
             #crop_size = self.data_args.image_processor.crop_size or {'height': 224, 'width': 224}
             if 'siglip' in self.data_args.image_processor.image_processor_type.lower():
                 crop_size = {'height': 256, 'width': 256}
+            elif 'aimv2' in self.data_args.image_processor.image_processor_type.lower():
+                crop_size = {'height': 224, 'width': 224}
             else:
                 crop_size = self.data_args.image_processor.crop_size
             data_dict['image'] = torch.zeros(3, crop_size['height'], crop_size['width'])
