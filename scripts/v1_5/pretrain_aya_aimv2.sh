@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-MODEL_VERSION=aya-23-8b-siglip-multi
+MODEL_VERSION=aya-23-8b-aimv2
 
 ########### DO NOT CHANGE ###########
 ########### USE THIS FOR BOTH ###########
