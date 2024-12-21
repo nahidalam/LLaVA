@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MODEL_VERSION=vicuna-7b-aimv2
+MODEL_VERSION=vicuna-7b-siglip-base-patch15-256-multilingual
 
 deepspeed llava/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
