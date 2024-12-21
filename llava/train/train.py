@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 import json
 import logging
 import pathlib
+import random
 from typing import Dict, Optional, Sequence, List
 
 import torch
@@ -34,9 +35,8 @@ from llava.train.llava_trainer import LLaVATrainer
 from llava import conversation as conversation_lib
 from llava.model import *
 from llava.mm_utils import tokenizer_image_token
-
 from PIL import Image
-
+import functools
 
 local_rank = None
 
@@ -44,6 +44,17 @@ local_rank = None
 def rank0_print(*args):
     if local_rank == 0:
         print(*args)
+
+
+def wrap_siglip_forward_method(siglip_object):
+    original_forward = siglip_object.forward
+
+    @functools.wraps(original_forward)
+    def wrapped_forward(pixel_values, interpolate_pos_encoding=True):
+        return original_forward(pixel_values, interpolate_pos_encoding=interpolate_pos_encoding)
+
+    siglip_object.forward = wrapped_forward
+    return siglip_object
 
 
 from packaging import version
@@ -419,6 +430,7 @@ def preprocess_v1(
     conv = conversation_lib.default_conversation.copy()
     roles = {"human": conv.roles[0], "gpt": conv.roles[1]}
 
+
     # Apply prompt templates
     conversations = []
     for i, source in enumerate(sources):
@@ -474,9 +486,7 @@ def preprocess_v1(
                 round_len = len(tokenizer(rou).input_ids)
                 instruction_len = len(tokenizer(parts[0]).input_ids) - 2
 
-            if i != 0 and not tokenizer.legacy and IS_TOKENIZER_GREATER_THAN_0_14:
-                round_len -= 1
-                instruction_len -= 1
+            
 
             target[cur_len : cur_len + instruction_len] = IGNORE_INDEX
 
@@ -662,7 +672,23 @@ class LazySupervisedDataset(Dataset):
                  tokenizer: transformers.PreTrainedTokenizer,
                  data_args: DataArguments):
         super(LazySupervisedDataset, self).__init__()
-        list_data_dict = json.load(open(data_path, "r"))
+
+        if data_path.endswith('.json'):
+            files_count = 1
+            list_data_dict = json.load(open(data_path, "r"))
+        else:
+            files_count = 0
+            list_data_dict = []
+            for filename in os.listdir(data_path):
+                if filename.endswith('.json'):
+                    files_count += 1
+                    print(f"Adding new language {filename} file")
+                    data = json.load(open(os.path.join(data_path, filename), "r"))
+                    list_data_dict = list_data_dict + data
+
+        print(f"Total number of files added to dataset: {files_count}")
+        print(f"Total number of data points: {len(list_data_dict)}")
+        random.shuffle(list_data_dict)
 
         rank0_print("Formatting inputs...Skip in lazy mode")
         self.tokenizer = tokenizer
@@ -699,6 +725,13 @@ class LazySupervisedDataset(Dataset):
             image_folder = self.data_args.image_folder
             processor = self.data_args.image_processor
             image = Image.open(os.path.join(image_folder, image_file)).convert('RGB')
+            '''
+            try:
+                image = Image.open(os.path.join(image_folder, image_file)).convert('RGB')
+            except FileNotFoundError:
+                #print(f"File not found: {image_file}, skipping...")
+                return None
+            '''
             if self.data_args.image_aspect_ratio == 'pad':
                 def expand2square(pil_img, background_color):
                     width, height = pil_img.size
@@ -728,13 +761,18 @@ class LazySupervisedDataset(Dataset):
         if isinstance(i, int):
             data_dict = dict(input_ids=data_dict["input_ids"][0],
                              labels=data_dict["labels"][0])
-
         # image exist in the data
         if 'image' in self.list_data_dict[i]:
             data_dict['image'] = image
         elif self.data_args.is_multimodal:
             # image does not exist in the data, but the model is multimodal
-            crop_size = self.data_args.image_processor.crop_size
+            #crop_size = self.data_args.image_processor.crop_size or {'height': 224, 'width': 224}
+            if 'siglip' in self.data_args.image_processor.image_processor_type.lower():
+                crop_size = {'height': 256, 'width': 256}
+            elif 'aimv2' in self.data_args.image_processor.image_processor_type.lower():
+                crop_size = {'height': 224, 'width': 224}
+            else:
+                crop_size = self.data_args.image_processor.crop_size
             data_dict['image'] = torch.zeros(3, crop_size['height'], crop_size['width'])
         return data_dict
 
@@ -915,6 +953,14 @@ def train(attn_implementation=None):
         
         vision_tower = model.get_vision_tower()
         vision_tower.to(dtype=torch.bfloat16 if training_args.bf16 else torch.float16, device=training_args.device)
+
+        if vision_tower.__class__.__name__ == 'SiglipVisionTower':
+            #Enforcing interpolate_pos_encoding = True by default for Siglip embeddings
+            siglip_embedding = vision_tower.vision_tower.vision_model.embeddings
+
+            siglip_embedding = wrap_siglip_forward_method(siglip_embedding)
+            vision_tower.vision_tower.vision_model.embeddings = siglip_embedding
+
 
         data_args.image_processor = vision_tower.image_processor
         data_args.is_multimodal = True
