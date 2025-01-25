@@ -147,6 +147,16 @@ class LLaVATrainer(Trainer):
         else:
             return super()._get_train_sampler()
 
+    # Only used to validate if the layer are being unfreezed as requested using params --unfreeze_text_layers 2 --unfreeze_vision_layers 2 \
+    # Should only be used for testing purpose.   
+    """def training_step(self, model, inputs):
+        res = super().training_step(model, inputs)
+        for name, param in self.model.model.named_parameters():
+            if 'layers.31.mlp.gate_proj.weight' in name:
+                print(param)
+        return res"""
+
+
     def create_optimizer(self):
         """
         Setup the optimizer.
