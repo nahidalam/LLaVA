@@ -1,7 +1,7 @@
 import os
 from .clip_encoder import CLIPVisionTower, CLIPVisionTowerS2
 from .siglip_encoder import SiglipVisionTower
-from .siglip2_encoder import Siglip2VisionTower
+#from .siglip2_encoder import Siglip2VisionTower
 from .aimv2_encoder import AIMv2VisionTower
 
 def build_vision_tower(vision_tower_cfg, **kwargs):
@@ -13,8 +13,8 @@ def build_vision_tower(vision_tower_cfg, **kwargs):
             return CLIPVisionTowerS2(vision_tower, args=vision_tower_cfg, **kwargs)
         else:
             return CLIPVisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
-    elif 'siglip2' in vision_tower:
-        return Siglip2VisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
+    #elif 'siglip2' in vision_tower:
+        #return Siglip2VisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
     elif 'siglip' in vision_tower:
         return SiglipVisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
     elif 'aimv2' in vision_tower:
