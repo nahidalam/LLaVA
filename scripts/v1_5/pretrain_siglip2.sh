@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MODEL_VERSION=vicuna-7b-siglip2-base-patch16-256
+MODEL_VERSION=vicuna-7b-siglip-base-patch16-256
 
 deepspeed llava/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
@@ -8,7 +8,7 @@ deepspeed llava/train/train_mem.py \
     --version plain \
     --data_path /dev/data/LLaVA_Pretrain \
     --image_folder /dev/data/images \
-    --vision_tower google/siglip2-base-patch16-256 \
+    --vision_tower google/siglip-base-patch16-256 \
     --mm_projector_type mlp2x_gelu \
     --tune_mm_mlp_adapter True \
     --mm_vision_select_layer -2 \
