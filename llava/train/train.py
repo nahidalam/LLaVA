@@ -45,6 +45,15 @@ def rank0_print(*args):
     if local_rank == 0:
         print(*args)
 
+def wrap_siglip_forward_method(siglip_object):
+    original_forward = siglip_object.forward
+
+    @functools.wraps(original_forward)
+    def wrapped_forward(pixel_values, interpolate_pos_encoding=True):
+        return original_forward(pixel_values, interpolate_pos_encoding=interpolate_pos_encoding)
+
+    siglip_object.forward = wrapped_forward
+    return siglip_object
 
 from packaging import version
 IS_TOKENIZER_GREATER_THAN_0_14 = version.parse(tokenizers.__version__) >= version.parse('0.14')
@@ -698,7 +707,13 @@ class LazySupervisedDataset(Dataset):
             image_file = self.list_data_dict[i]['image']
             image_folder = self.data_args.image_folder
             processor = self.data_args.image_processor
-            image = Image.open(os.path.join(image_folder, image_file)).convert('RGB')
+            #image = Image.open(os.path.join(image_folder, image_file)).convert('RGB')
+            image_path = os.path.join(image_folder, image_file)
+            try:
+                image = Image.open(image_path).convert('RGB')
+            except FileNotFoundError:
+                print(f"[WARN] Image not found: {image_path}. Skipping sample.")
+                return self.__getitem__((i + 1) % len(self))  # Try next index
             if self.data_args.image_aspect_ratio == 'pad':
                 def expand2square(pil_img, background_color):
                     width, height = pil_img.size
@@ -734,7 +749,11 @@ class LazySupervisedDataset(Dataset):
             data_dict['image'] = image
         elif self.data_args.is_multimodal:
             # image does not exist in the data, but the model is multimodal
-            crop_size = self.data_args.image_processor.crop_size
+            #crop_size = self.data_args.image_processor.crop_size
+            if 'siglip' in self.data_args.image_processor.image_processor_type.lower():
+                crop_size = {'height': 256, 'width': 256}
+            else:
+                crop_size = self.data_args.image_processor.crop_size
             data_dict['image'] = torch.zeros(3, crop_size['height'], crop_size['width'])
         return data_dict
 
