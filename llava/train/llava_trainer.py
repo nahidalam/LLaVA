@@ -246,7 +246,14 @@ class LLaVATrainer(Trainer):
                 self.model.config.save_pretrained(output_dir)
                 torch.save(weight_to_save, os.path.join(output_dir, f'mm_projector.bin'))
         else:
-            super(LLaVATrainer, self)._save_checkpoint(model, trial, metrics)
+            #super(LLaVATrainer, self)._save_checkpoint(model, trial, metrics)
+            # fix for newer transformer
+            if metrics:
+                # log/save metrics manually if needed
+                logger.info(f"Metrics while saving checkpoints {metrics}")
+
+
+            super(LLaVATrainer, self)._save_checkpoint(model, trial)
 
     def _save(self, output_dir: Optional[str] = None, state_dict=None):
         if getattr(self.args, 'tune_mm_mlp_adapter', False):
