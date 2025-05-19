@@ -163,5 +163,11 @@ def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, l
         context_len = model.config.max_sequence_length
     else:
         context_len = 2048
-
+    # Patch generation_config to avoid validation error on save
+    if hasattr(model, "generation_config") and model.generation_config is not None:
+        gen_cfg = model.generation_config
+        if not gen_cfg.do_sample:
+            gen_cfg.temperature = None
+            gen_cfg.top_p = None
+        model.generation_config = gen_cfg
     return tokenizer, model, image_processor, context_len
