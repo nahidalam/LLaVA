@@ -259,4 +259,11 @@ class LLaVATrainer(Trainer):
         if getattr(self.args, 'tune_mm_mlp_adapter', False):
             pass
         else:
+            # Patch generation_config to avoid HF validation error
+            if hasattr(self.model, "generation_config") and self.model.generation_config is not None:
+                gen_cfg = self.model.generation_config
+                if not gen_cfg.do_sample:
+                    gen_cfg.temperature = None
+                    gen_cfg.top_p = None
+                self.model.generation_config = gen_cfg
             super(LLaVATrainer, self)._save(output_dir, state_dict)
