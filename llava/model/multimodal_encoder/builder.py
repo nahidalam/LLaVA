@@ -7,7 +7,7 @@ def build_vision_tower(vision_tower_cfg, **kwargs):
     vision_tower = getattr(vision_tower_cfg, "mm_vision_tower", getattr(vision_tower_cfg, "vision_tower", None))
     use_s2 = getattr(vision_tower_cfg, "s2", False)
 
-    if vision_tower.startswith("openai/aim-v2") or "aimv2" in vision_tower.lower():
+    if vision_tower and ("apple/aimv2" in vision_tower or "aim-v2" in vision_tower.lower() or "aimv2" in vision_tower.lower()):
         return Aimv2VisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
 
     if "siglip" in vision_tower.lower():
