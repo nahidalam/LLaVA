@@ -78,7 +78,8 @@ After following the installation instruction, please bump the transformer versio
 pip install transformers==4.55.0
 pip install -U accelerate==1.9.0
 pip install protobuf==3.20.0
-pip install torch==2.5.0+cu121 torchvision==0.20.0+cu121 --extra-index-url https://download.pytorch.org/whl/cu121
+pip install "torch==2.4.0+cu121" "torchvision==0.19.0+cu121"   --extra-index-url https://download.pytorch.org/whl/cu121
+pip install "deepspeed>=0.16.7"
 ```
 
 If you are not using Linux, do *NOT* proceed, see instructions for [macOS](https://github.com/haotian-liu/LLaVA/blob/main/docs/macOS.md) and [Windows](https://github.com/haotian-liu/LLaVA/blob/main/docs/Windows.md).
