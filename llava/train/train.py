@@ -848,6 +848,7 @@ def train(attn_implementation=None):
                 cache_dir=training_args.cache_dir,
                 attn_implementation=attn_implementation,
                 torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
+                use_safetensors=True,
                 **bnb_model_from_pretrained_args
             )
     else:
@@ -856,6 +857,7 @@ def train(attn_implementation=None):
             cache_dir=training_args.cache_dir,
             attn_implementation=attn_implementation,
             torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
+            use_safetensors=True,
             **bnb_model_from_pretrained_args
         )
     model.config.use_cache = False
