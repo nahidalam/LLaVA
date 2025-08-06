@@ -132,7 +132,7 @@ class LengthGroupedSampler(Sampler):
 
 class LLaVATrainer(Trainer):
 
-    def _get_train_sampler(self) -> Optional[torch.utils.data.Sampler]:
+    def _get_train_sampler(self, dataset) -> Optional[torch.utils.data.Sampler]:
         if self.train_dataset is None or not has_length(self.train_dataset):
             return None
 
