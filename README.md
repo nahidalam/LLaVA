@@ -76,6 +76,8 @@ After following the installation instruction, please bump the transformer versio
 
 ```
 pip install transformers==4.55.0
+pip install -U accelerate==0.32.0
+pip install protobuf==3.20.0
 ```
 
 If you are not using Linux, do *NOT* proceed, see instructions for [macOS](https://github.com/haotian-liu/LLaVA/blob/main/docs/macOS.md) and [Windows](https://github.com/haotian-liu/LLaVA/blob/main/docs/Windows.md).
