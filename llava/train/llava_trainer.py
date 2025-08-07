@@ -9,9 +9,10 @@ from transformers.trainer import (
     is_sagemaker_mp_enabled,
     get_parameter_names,
     has_length,
-    ALL_LAYERNORM_LAYERS,
     logger,
 )
+import torch.nn as nn
+ALL_LAYERNORM_LAYERS = [nn.LayerNorm]
 from typing import List, Optional
 
 
