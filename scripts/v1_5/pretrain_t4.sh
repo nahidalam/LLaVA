@@ -5,7 +5,7 @@ deepspeed llava/train/train_sdpa.py \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
     --version plain \
     --data_path /kaggle/input/blip-laion-cc-sbu-55-8k/blip_laion_cc_sbu_55.8k.json \
-    --image_folder /kaggle/input/small-images-zip \
+    --image_folder /kaggle/input/small-images \
     --vision_tower google/siglip-base-patch16-256 \
     --mm_projector_type mlp2x_gelu \
     --tune_mm_mlp_adapter True \
