@@ -4,8 +4,8 @@ deepspeed llava/train/train_sdpa.py \
     --deepspeed ./scripts/zero3.json \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
     --version plain \
-    --data_path /kaggle/input/blip-laion-cc-sbu-55-8k/blip_laion_cc_sbu_55.8k.json \
-    --image_folder /kaggle/input/small-images \
+    --data_path /kaggle/input/blip-laion-cc-sbu-558/blip_laion_cc_sbu_558.json \
+    --image_folder /kaggle/input/smallest-images \
     --vision_tower google/siglip-base-patch16-256 \
     --use_rope_vision True \
     --mm_projector_type mlp2x_gelu \
