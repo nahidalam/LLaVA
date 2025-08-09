@@ -8,6 +8,9 @@ from transformers import SiglipVisionModel, SiglipVisionConfig
 from huggingface_hub import hf_hub_download
 from safetensors import safe_open
 
+from huggingface_hub import hf_hub_download
+from safetensors import safe_open
+
 def build_vision_tower(vision_tower_cfg, **kwargs):
     vision_tower = getattr(vision_tower_cfg, "mm_vision_tower", getattr(vision_tower_cfg, "vision_tower", None))
     use_s2 = getattr(vision_tower_cfg, "s2", False)
