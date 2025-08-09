@@ -98,6 +98,11 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
     def device(self):
         # A robust way to get the device of a module is to check one of its parameters.
         return self.embeddings.patch_embedding.weight.device
+    
+    @property
+    def dtype(self):
+        # A robust way to get the dtype of a module is to check one of its parameters.
+        return self.embeddings.patch_embedding.weight.dtype
 
     def _generate_rope_embeddings(self, height, width, device):
         patch_size = self.config.patch_size
