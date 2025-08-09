@@ -31,4 +31,4 @@ deepspeed llava/train/train_sdpa.py \
     --gradient_checkpointing True \
     --dataloader_num_workers 2 \
     --lazy_preprocess True \
-    --report_to wandb
+    --report_to none
