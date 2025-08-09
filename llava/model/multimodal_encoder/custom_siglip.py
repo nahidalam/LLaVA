@@ -93,6 +93,11 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
         
         # 3. Replace the encoder layers with our modified version
         self.encoder.layers = nn.ModuleList([SiglipEncoderLayerWithRope(config) for _ in range(config.num_hidden_layers)])
+    
+    @property
+    def device(self):
+        # A robust way to get the device of a module is to check one of its parameters.
+        return self.embeddings.patch_embedding.weight.device
 
     def _generate_rope_embeddings(self, height, width, device):
         patch_size = self.config.patch_size
