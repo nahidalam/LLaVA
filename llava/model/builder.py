@@ -22,6 +22,23 @@ import torch
 from llava.model import *
 from llava.constants import DEFAULT_IMAGE_PATCH_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
 
+# Explicit imports in case the wildcard import fails
+try:
+    from llava.model.language_model.llava_llama import LlavaLlamaForCausalLM, LlavaConfig
+except ImportError as e:
+    print(f"Warning: Could not import LlavaLlamaForCausalLM: {e}")
+    LlavaLlamaForCausalLM = None
+
+try:
+    from llava.model.language_model.llava_mpt import LlavaMptForCausalLM
+except ImportError:
+    LlavaMptForCausalLM = None
+    
+try:
+    from llava.model.language_model.llava_mistral import LlavaMistralForCausalLM
+except ImportError:
+    LlavaMistralForCausalLM = None
+
 
 def load_pretrained_model(model_path, model_base, model_name, load_8bit=False, load_4bit=False, device_map="auto", device="cuda", use_flash_attn=False, **kwargs):
     kwargs = {"device_map": device_map, **kwargs}

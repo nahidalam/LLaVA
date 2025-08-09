@@ -33,3 +33,10 @@ ckpts*
 
 # Demo
 serve_images/
+
+# Ignore Visual Studio cache and user-specific files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.slnx.sqlite

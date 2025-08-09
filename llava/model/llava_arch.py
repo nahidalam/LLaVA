@@ -168,7 +168,28 @@ class LlavaMetaForCausalLM(ABC):
                         base_image_feature = image_feature[0]
                         image_feature = image_feature[1:]
                         height = width = self.get_vision_tower().num_patches_per_side
-                        assert height * width == base_image_feature.shape[0]
+                        
+                        # Handle different vision encoders with different patch counts
+                        expected_patches = height * width
+                        actual_patches = base_image_feature.shape[0]
+                        
+                        if actual_patches == expected_patches + 1:
+                            # Has CLS token - remove it
+                            base_image_feature = base_image_feature[1:]
+                        elif actual_patches != expected_patches:
+                            # For models with different patch dimensions (like AIMv2)
+                            # Try to infer the correct grid dimensions
+                            import math
+                            side = int(math.sqrt(actual_patches))
+                            if side * side == actual_patches:
+                                height = width = side
+                            else:
+                                # Non-square patch arrangement - need to handle differently
+                                raise ValueError(f"Cannot infer patch grid dimensions: got {actual_patches} patches, expected {expected_patches}")
+                        
+                        # Final verification
+                        if height * width != base_image_feature.shape[0]:
+                            raise AssertionError(f"Shape mismatch after adjustment: expected {height}*{width}={height*width}, got {base_image_feature.shape[0]}")
                         if image_aspect_ratio == 'anyres':
                             num_patch_width, num_patch_height = get_anyres_image_grid_shape(image_sizes[image_idx], self.config.image_grid_pinpoints, self.get_vision_tower().config.image_size)
                             image_feature = image_feature.view(num_patch_height, num_patch_width, height, width, -1)
