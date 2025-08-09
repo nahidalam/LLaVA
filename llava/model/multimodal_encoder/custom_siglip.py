@@ -1,0 +1,214 @@
+from typing import Optional, Tuple
+import torch
+from torch import nn
+import torch.nn.functional as F
+
+# Import original SigLIP classes to inherit from them
+from transformers.models.siglip.modeling_siglip import (
+    SiglipAttention,
+    SiglipEncoderLayer,
+    SiglipVisionTransformer,
+    SiglipVisionConfig,
+    BaseModelOutputWithPooling,
+)
+
+# Import our new helper functions
+from .rope_vision import VisionRotaryEmbedding, apply_rotary_pos_emb_vision
+
+class SiglipAttentionWithRope(SiglipAttention):
+    """Modified SiglipAttention to accept and apply 2D RoPE."""
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None,
+        position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None, # New argument
+        **kwargs,
+    ) -> tuple[torch.Tensor, Optional[torch.Tensor]]:
+        
+        batch_size, seq_length, embed_dim = hidden_states.shape
+
+        query_states = self.q_proj(hidden_states)
+        key_states = self.k_proj(hidden_states)
+        value_states = self.v_proj(hidden_states)
+
+        query_states = query_states.view(batch_size, seq_length, self.num_heads, self.head_dim).transpose(1, 2)
+        key_states = key_states.view(batch_size, seq_length, self.num_heads, self.head_dim).transpose(1, 2)
+        value_states = value_states.view(batch_size, seq_length, self.num_heads, self.head_dim).transpose(1, 2)
+
+        if position_embeddings is not None:
+            cos, sin = position_embeddings
+            query_states, key_states = apply_rotary_pos_emb_vision(query_states, key_states, cos, sin)
+
+        attn_output = F.scaled_dot_product_attention(
+            query_states, key_states, value_states, attn_mask=attention_mask,
+            dropout_p=self.dropout if self.training else 0.0,
+        )
+
+        attn_output = attn_output.transpose(1, 2).contiguous().reshape(batch_size, seq_length, embed_dim)
+        attn_output = self.out_proj(attn_output)
+        return attn_output, None
+
+class SiglipEncoderLayerWithRope(SiglipEncoderLayer):
+    def __init__(self, config: SiglipVisionConfig):
+        super().__init__(config)
+        self.self_attn = SiglipAttentionWithRope(config)
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        attention_mask: torch.Tensor,
+        position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
+        output_attentions: Optional[bool] = False,
+    ) -> tuple[torch.FloatTensor]:
+        residual = hidden_states
+        hidden_states = self.layer_norm1(hidden_states)
+        hidden_states, attn_weights = self.self_attn(
+            hidden_states=hidden_states,
+            attention_mask=attention_mask,
+            position_embeddings=position_embeddings,
+        )
+        hidden_states = residual + hidden_states
+
+        residual = hidden_states
+        hidden_states = self.layer_norm2(hidden_states)
+        hidden_states = self.mlp(hidden_states)
+        hidden_states = residual + hidden_states
+
+        outputs = (hidden_states,)
+        if output_attentions:
+            outputs += (attn_weights,)
+        return outputs
+
+class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
+    def __init__(self, config: SiglipVisionConfig):
+        super().__init__(config)
+        
+        # 1. Remove the original learned positional embeddings
+        self.embeddings.position_embedding = None
+        self.embeddings.position_ids = None
+
+        # 2. Instantiate our new RoPE module
+        head_dim = config.hidden_size // config.num_attention_heads
+        self.rotary_pos_emb = VisionRotaryEmbedding(head_dim // 2)
+        
+        # 3. Replace the encoder layers with our modified version
+        self.encoder.layers = nn.ModuleList([SiglipEncoderLayerWithRope(config) for _ in range(config.num_hidden_layers)])
+
+    def _generate_rope_embeddings(self, height, width, device):
+        patch_size = self.config.patch_size
+        grid_h, grid_w = height // patch_size, width // patch_size
+
+        hpos_ids = torch.arange(grid_h, device=device).unsqueeze(1).expand(-1, grid_w).flatten()
+        wpos_ids = torch.arange(grid_w, device=device).unsqueeze(0).expand(grid_h, -1).flatten()
+        
+        pos_ids = torch.stack([hpos_ids, wpos_ids], dim=-1)
+        max_grid_size = max(grid_h, grid_w)
+        rotary_pos_emb_full = self.rotary_pos_emb(max_grid_size)
+        
+        h_emb = rotary_pos_emb_full[pos_ids[:, 0]]
+        w_emb = rotary_pos_emb_full[pos_ids[:, 1]]
+        
+        emb = torch.cat((h_emb, w_emb), dim=-1)
+        return emb.cos(), emb.sin()
+
+    def forward(
+        self,
+        pixel_values,
+        output_attentions: Optional[bool] = None,
+        output_hidden_states: Optional[bool] = None,
+        interpolate_pos_encoding: bool = False, # This will be ignored
+    ):
+        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
+        output_hidden_states = (
+            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        )
+        
+        # 1. Get patch embeddings WITHOUT positional embeddings
+        hidden_states = self.embeddings.patch_embedding(pixel_values).flatten(2).transpose(1, 2)
+        
+        # 2. Generate RoPE embeddings on the fly
+        height, width = pixel_values.shape[-2:]
+        position_embeddings = self._generate_rope_embeddings(height, width, device=pixel_values.device)
+        
+        # 3. Manually create attention mask if not using Flash Attention
+        # This is a simple mask that allows all tokens to attend to all other tokens.
+        batch_size, seq_len, _ = hidden_states.shape
+        attention_mask = torch.ones((batch_size, seq_len), device=pixel_values.device)
+        
+        # 4. Forward through the encoder, passing the RoPE embeddings
+        encoder_outputs = self.encoder(
+            inputs_embeds=hidden_states,
+            attention_mask=attention_mask,
+            position_embeddings=position_embeddings,
+            output_attentions=output_attentions,
+            output_hidden_states=output_hidden_states,
+        )
+
+        last_hidden_state = encoder_outputs.last_hidden_state
+        last_hidden_state = self.post_layernorm(last_hidden_state)
+        
+        pooled_output = self.head(last_hidden_state) if self.use_head else None
+
+        return BaseModelOutputWithPooling(
+            last_hidden_state=last_hidden_state,
+            pooler_output=pooled_output,
+            hidden_states=encoder_outputs.hidden_states,
+            attentions=encoder_outputs.attentions,
+        )
+
+    
+
+Step 3: Integrate the Custom Model into LLaVA's Builder
+
+Now, we tell LLaVA's model builder how to use our new custom class.
+Cell: Patch builder.py
+code Bash
+IGNORE_WHEN_COPYING_START
+IGNORE_WHEN_COPYING_END
+
+      
+%%writefile /kaggle/working/llava-mrope/llava/model/multimodal_encoder/builder.py
+import os
+from .clip_encoder import CLIPVisionTower
+from .siglip_encoder import SiglipVisionTower
+# --- START OF MODIFICATION ---
+from .custom_siglip import SiglipVisionTransformerWithRope
+from transformers import SiglipVisionModel
+# --- END OF MODIFICATION ---
+
+def build_vision_tower(vision_tower_cfg, **kwargs):
+    vision_tower = getattr(vision_tower_cfg, 'mm_vision_tower', getattr(vision_tower_cfg, 'vision_tower', None))
+    is_absolute_path_exists = os.path.exists(vision_tower)
+
+    # --- START OF MODIFICATION ---
+    # Add a new condition to catch your custom model
+    if 'siglip' in vision_tower and getattr(vision_tower_cfg, 'use_rope_vision', False):
+        print("Building SiglipVisionTower with 2D RoPE.")
+        
+        # Load the original SiglipVisionModel to get its pre-trained weights
+        original_siglip = SiglipVisionModel.from_pretrained(vision_tower, **kwargs)
+        
+        # Create our custom model with the same config
+        config = original_siglip.config
+        custom_model = SiglipVisionTransformerWithRope(config)
+        
+        # Load the state dict, ignoring the now-absent positional embedding keys
+        # This is the expected and correct behavior.
+        missing_keys, unexpected_keys = custom_model.load_state_dict(original_siglip.vision_model.state_dict(), strict=False)
+        print(f"Custom Siglip with RoPE loaded. Missing keys: {missing_keys}")
+        
+        # Wrap it in the standard SiglipVisionTower class for compatibility with LLaVA
+        tower = SiglipVisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
+        tower.vision_tower = custom_model # Replace the internal model with our custom one
+        return tower
+    # --- END OF MODIFICATION ---
+
+    elif 'siglip' in vision_tower:
+        return SiglipVisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
+    
+    elif is_absolute_path_exists or vision_tower.startswith("openai"):
+        return CLIPVisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
+
+    raise ValueError(f'Unknown vision tower: {vision_tower}')
+
+    

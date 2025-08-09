@@ -28,72 +28,66 @@ else:
 
 
 def create_subset_zip(small_json_path, large_zip_path, output_zip_path):
-    """
-    Creates a new, smaller zip file containing only the images listed in a JSON annotation file.
+    import posixpath
 
-    Args:
-        small_json_path (str): Path to the small JSON file with image filenames.
-        large_zip_path (str): Path to the original large zip file.
-        output_zip_path (str): Path where the new, smaller zip file will be saved.
-    """
-    # --- Step 1: Get the set of required image filenames from the small JSON ---
+    # --- Step 1: Load required filenames exactly as in JSON ---
     print(f"Step 1: Loading required image filenames from '{os.path.basename(small_json_path)}'...")
     try:
         with open(small_json_path, 'r') as f:
             small_data = json.load(f)
-        required_basenames = {item['image'] for item in small_data if 'image' in item}
-        print(f"Found {len(required_basenames)} unique image filenames required.")
+        # Normalize to zip-style paths (forward slashes)
+        required_paths = {posixpath.normpath(item['image']) for item in small_data if 'image' in item}
+        print(f"Found {len(required_paths)} unique image filenames required.")
     except Exception as e:
         print(f"Error reading JSON file: {e}")
         return
 
-    # --- Step 2: Build a map of (basename -> full_path) from the large zip ---
-    print(f"Step 2: Building a file map from '{os.path.basename(large_zip_path)}'. This may take a moment...")
+    # --- Step 2: Build a map of (normalized_path -> actual_zip_path) ---
+    print(f"Step 2: Building a file map from '{os.path.basename(large_zip_path)}'...")
     path_map = {}
     try:
         with zipfile.ZipFile(large_zip_path, 'r') as large_zip:
-            # Use the imported tqdm (either notebook or standard version)
             for file_path in tqdm(large_zip.namelist(), desc="Scanning large zip"):
                 if file_path.lower().endswith(('.jpg', '.jpeg', '.png')):
-                    basename = os.path.basename(file_path)
-                    path_map[basename] = file_path
+                    norm_path = posixpath.normpath(file_path)
+                    path_map[norm_path] = file_path
         print("File map created successfully.")
     except Exception as e:
         print(f"Error reading the large zip file: {e}")
         return
 
-    # --- Step 3: Create the new zip by copying only the required files ---
+    # --- Step 3: Create the new zip ---
     print(f"Step 3: Creating new zip file at '{output_zip_path}'...")
     not_found_count = 0
     with zipfile.ZipFile(large_zip_path, 'r') as large_zip:
         with zipfile.ZipFile(output_zip_path, 'w', zipfile.ZIP_DEFLATED) as small_zip:
-            # Use the imported tqdm
-            for basename in tqdm(required_basenames, desc="Writing to new zip"):
-                if basename in path_map:
-                    full_path = path_map[basename]
-                    image_data = large_zip.read(full_path)
-                    small_zip.writestr(full_path, image_data)
+            for rel_path in tqdm(required_paths, desc="Writing to new zip"):
+                if rel_path in path_map:
+                    full_path_in_zip = path_map[rel_path]
+                    image_data = large_zip.read(full_path_in_zip)
+                    small_zip.writestr(full_path_in_zip, image_data)
                 else:
-                    print(f"Warning: Image '{basename}' from JSON not found in the large zip.")
+                    print(f"Warning: Image '{rel_path}' from JSON not found in the large zip.")
                     not_found_count += 1
-    
+
     print("-" * 30)
     print("✅ Process Complete!")
     print(f"New zip file created: {output_zip_path}")
     if not_found_count > 0:
         print(f"⚠️ Warning: {not_found_count} required images were not found in the source zip.")
 
+
 # --- Main execution block ---
 if __name__ == "__main__":
     # --- Define your file paths here ---
     # This should be the path to the small JSON you created
-    small_json_path = 'blip_laion_cc_sbu_55.8k.json' 
+    small_json_path = 'blip_laion_cc_sbu_558.json' 
 
     # This is the path to the large zip file
-    large_zip_path = 'images.zip'
+    large_zip_path = 'images1.zip'
 
     # This is the desired output path for your new, smaller zip file
-    output_zip_path = 'small_images.zip'
+    output_zip_path = 'smallest_images.zip'
 
     # --- Run the function ---
     create_subset_zip(small_json_path, large_zip_path, output_zip_path)
