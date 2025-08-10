@@ -222,7 +222,7 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
             sin.unsqueeze(0).expand(batch_size, -1, -1)
         )
 
-        attention_mask = torch.ones((batch_size, seq_len), device=pixel_values.device)
+        attention_mask = None
         
         # 4. Forward through the encoder, passing the RoPE embeddings
         encoder_outputs = self.encoder(
