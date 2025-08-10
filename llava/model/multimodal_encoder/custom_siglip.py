@@ -48,6 +48,60 @@ class SiglipAttentionWithRope(SiglipAttention):
         attn_output = self.out_proj(attn_output)
         return attn_output, None
 
+
+class SiglipEncoderWithRope(SiglipEncoder):
+    """
+    Modified SiglipEncoder to accept and pass down position_embeddings.
+    """
+    def __init__(self, config: SiglipVisionConfig):
+        super().__init__(config)
+        # Replace the original layers with our RoPE-compatible layers
+        self.layers = nn.ModuleList([SiglipEncoderLayerWithRope(config) for _ in range(config.num_hidden_layers)])
+
+    def forward(
+        self,
+        inputs_embeds,
+        attention_mask: Optional[torch.Tensor] = None,
+        position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None, # Accept the new argument
+        output_attentions: Optional[bool] = None,
+        output_hidden_states: Optional[bool] = None,
+    ) -> BaseModelOutput:
+        
+        output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
+        output_hidden_states = (
+            output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
+        )
+
+        encoder_states = () if output_hidden_states else None
+        all_attentions = () if output_attentions else None
+
+        hidden_states = inputs_embeds
+        for encoder_layer in self.layers:
+            if output_hidden_states:
+                encoder_states = encoder_states + (hidden_states,)
+
+            # Pass position_embeddings down to each layer
+            layer_outputs = encoder_layer(
+                hidden_states,
+                attention_mask,
+                position_embeddings=position_embeddings,
+                output_attentions=output_attentions,
+            )
+
+            hidden_states = layer_outputs[0]
+
+            if output_attentions:
+                all_attentions = all_attentions + (layer_outputs[1],)
+
+        if output_hidden_states:
+            encoder_states = encoder_states + (hidden_states,)
+
+        return BaseModelOutput(
+            last_hidden_state=hidden_states,
+            hidden_states=encoder_states,
+            attentions=all_attentions,
+        )
+
 class SiglipEncoderLayerWithRope(SiglipEncoderLayer):
     def __init__(self, config: SiglipVisionConfig):
         super().__init__(config)
@@ -92,7 +146,8 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
         self.rotary_pos_emb = VisionRotaryEmbedding(head_dim // 2)
         
         # 3. Replace the encoder layers with our modified version
-        self.encoder.layers = nn.ModuleList([SiglipEncoderLayerWithRope(config) for _ in range(config.num_hidden_layers)])
+        # self.encoder.layers = nn.ModuleList([SiglipEncoderLayerWithRope(config) for _ in range(config.num_hidden_layers)])
+        self.encoder = SiglipEncoderWithRope(config)
     
     @property
     def device(self):
