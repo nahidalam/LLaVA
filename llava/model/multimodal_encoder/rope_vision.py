@@ -25,11 +25,11 @@ def rotate_half(x):
 def apply_rotary_pos_emb_vision(
     q: torch.Tensor, k: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor
 ) -> tuple[torch.Tensor, torch.Tensor]:
-    print(f"[DEBUG rope_vision] Inside apply_rotary_pos_emb_vision:")
-    print(f"  - q.shape: {q.shape}")
-    print(f"  - k.shape: {k.shape}")
-    print(f"  - cos.shape: {cos.shape}")
-    print(f"  - sin.shape: {sin.shape}")
+    # print(f"[DEBUG rope_vision] Inside apply_rotary_pos_emb_vision:")
+    # print(f"  - q.shape: {q.shape}")
+    # print(f"  - k.shape: {k.shape}")
+    # print(f"  - cos.shape: {cos.shape}")
+    # print(f"  - sin.shape: {sin.shape}")
 
     orig_q_dtype = q.dtype
     orig_k_dtype = k.dtype
@@ -39,8 +39,14 @@ def apply_rotary_pos_emb_vision(
     # The original unsqueeze was incorrect for the (batch, heads, seq, dim) layout.
     # We need to add dimensions for batch and heads to make it broadcastable.
     # Shape changes from (seq_len, head_dim) -> (1, 1, seq_len, head_dim)
-    cos = cos.unsqueeze(0).unsqueeze(0).float()
-    sin = sin.unsqueeze(0).unsqueeze(0).float()
+    if cos.ndim == 3:
+        cos = cos.unsqueeze(1).float()
+        sin = sin.unsqueeze(1).float()
+    elif cos.ndim == 2:
+        cos = cos.unsqueeze(0).unsqueeze(0).float()
+        sin = sin.unsqueeze(0).unsqueeze(0).float()
+    else:
+        raise ValueError(f"Unexpected shape for cos/sin tensors: {cos.shape}")
     q_embed = (q * cos) + (rotate_half(q) * sin)
     k_embed = (k * cos) + (rotate_half(k) * sin)
     q_embed = q_embed.to(orig_q_dtype)
