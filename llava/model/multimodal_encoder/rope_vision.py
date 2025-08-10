@@ -25,6 +25,12 @@ def rotate_half(x):
 def apply_rotary_pos_emb_vision(
     q: torch.Tensor, k: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor
 ) -> tuple[torch.Tensor, torch.Tensor]:
+    print(f"[DEBUG rope_vision] Inside apply_rotary_pos_emb_vision:")
+    print(f"  - q.shape: {q.shape}")
+    print(f"  - k.shape: {k.shape}")
+    print(f"  - cos.shape: {cos.shape}")
+    print(f"  - sin.shape: {sin.shape}")
+
     orig_q_dtype = q.dtype
     orig_k_dtype = k.dtype
     q, k = q.float(), k.float()

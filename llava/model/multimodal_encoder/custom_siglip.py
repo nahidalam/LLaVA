@@ -26,6 +26,8 @@ class SiglipAttentionWithRope(SiglipAttention):
         position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None, # New argument
         **kwargs,
     ) -> tuple[torch.Tensor, Optional[torch.Tensor]]:
+
+        print(f"[DEBUG SiglipAttentionWithRope] hidden_states.shape: {hidden_states.shape}")
         
         batch_size, seq_length, embed_dim = hidden_states.shape
 
@@ -39,6 +41,7 @@ class SiglipAttentionWithRope(SiglipAttention):
 
         if position_embeddings is not None:
             cos, sin = position_embeddings
+            print(f"[DEBUG SiglipAttentionWithRope] Applying RoPE. Q shape: {query_states.shape}, Cos shape: {cos.shape}")
             query_states, key_states = apply_rotary_pos_emb_vision(query_states, key_states, cos, sin)
 
         attn_output = F.scaled_dot_product_attention(
@@ -78,7 +81,8 @@ class SiglipEncoderWithRope(SiglipEncoder):
         all_attentions = () if output_attentions else None
 
         hidden_states = inputs_embeds
-        for encoder_layer in self.layers:
+        for i, encoder_layer in enumerate(self.layers):
+            print(f"[DEBUG SiglipEncoderWithRope] Forwarding to layer {i}")
             if output_hidden_states:
                 encoder_states = encoder_states + (hidden_states,)
 
@@ -193,6 +197,8 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
         output_hidden_states: Optional[bool] = None,
         interpolate_pos_encoding: bool = False, # This will be ignored
     ):
+        print(f"[DEBUG SiglipVisionTransformerWithRope] Input pixel_values.shape: {pixel_values.shape}")
+
         output_attentions = output_attentions if output_attentions is not None else self.config.output_attentions
         output_hidden_states = (
             output_hidden_states if output_hidden_states is not None else self.config.output_hidden_states
@@ -221,8 +227,10 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
             cos.unsqueeze(0).expand(batch_size, -1, -1),
             sin.unsqueeze(0).expand(batch_size, -1, -1)
         )
+        print(f"[DEBUG SiglipVisionTransformerWithRope] Generated position_embeddings shapes: cos={position_embeddings[0].shape}, sin={position_embeddings[1].shape}")
 
-        attention_mask = None
+        # attention_mask = None
+        attention_mask = torch.ones((batch_size, seq_len), device=pixel_values.device)
         
         # 4. Forward through the encoder, passing the RoPE embeddings
         encoder_outputs = self.encoder(
