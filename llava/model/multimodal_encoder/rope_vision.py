@@ -29,7 +29,12 @@ def apply_rotary_pos_emb_vision(
     orig_k_dtype = k.dtype
     q, k = q.float(), k.float()
     # The unsqueeze is for the head dimension
-    cos, sin = cos.unsqueeze(1).float(), sin.unsqueeze(1).float()
+    # cos, sin = cos.unsqueeze(1).float(), sin.unsqueeze(1).float()
+    # The original unsqueeze was incorrect for the (batch, heads, seq, dim) layout.
+    # We need to add dimensions for batch and heads to make it broadcastable.
+    # Shape changes from (seq_len, head_dim) -> (1, 1, seq_len, head_dim)
+    cos = cos.unsqueeze(0).unsqueeze(0).float()
+    sin = sin.unsqueeze(0).unsqueeze(0).float()
     q_embed = (q * cos) + (rotate_half(q) * sin)
     k_embed = (k * cos) + (rotate_half(k) * sin)
     q_embed = q_embed.to(orig_q_dtype)
