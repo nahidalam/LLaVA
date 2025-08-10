@@ -16,7 +16,7 @@ deepspeed llava/train/train_sdpa.py \
     --bf16 True \
     --output_dir ./checkpoints/llava-v1.5-7b-pretrain-siglip-base-patch16-256 \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 1 \
+    --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 16 \
     --eval_strategy "no" \
