@@ -39,6 +39,7 @@ class SiglipAttentionWithRope(SiglipAttention):
 
         if position_embeddings is not None:
             cos, sin = position_embeddings
+            print(f"[DEBUG] Applying RoPE. Q shape: {query_states.shape}, Cos shape: {cos.shape}")
             query_states, key_states = apply_rotary_pos_emb_vision(query_states, key_states, cos, sin)
 
         attn_output = F.scaled_dot_product_attention(
@@ -174,8 +175,16 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
         
         h_emb = rotary_pos_emb_full[pos_ids[:, 0]]
         w_emb = rotary_pos_emb_full[pos_ids[:, 1]]
-        
+
+        # The original `emb` was shape (num_patches, 64).
+        # The `apply_rotary_pos_emb_vision` function expects an embedding of half the head dimension,
+        # as it will be duplicated to create the full dimension inside the rotation.
+        # We now correctly combine the H and W embeddings for a 2D rotation.
+        # The final embedding should be duplicated for the full head dimension.
         emb = torch.cat((h_emb, w_emb), dim=-1)
+        
+        # The RoPE dimension is half the head dimension. We need to duplicate it.
+        emb = torch.cat((emb, emb), dim=-1)
         return emb.cos(), emb.sin()
 
     def forward(
