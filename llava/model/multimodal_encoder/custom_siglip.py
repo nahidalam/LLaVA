@@ -213,7 +213,7 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
         
         # # 3. Manually create attention mask if not using Flash Attention
         # # This is a simple mask that allows all tokens to attend to all other tokens.
-        # batch_size, seq_len, _ = hidden_states.shape
+        batch_size, seq_len, _ = hidden_states.shape
         # attention_mask = torch.ones((batch_size, seq_len), device=pixel_values.device)
 
         # The RoPE embeddings are generated for a single image grid.
