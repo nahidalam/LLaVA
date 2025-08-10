@@ -201,14 +201,26 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
         # 1. Get patch embeddings WITHOUT positional embeddings
         hidden_states = self.embeddings.patch_embedding(pixel_values).flatten(2).transpose(1, 2)
         
-        # 2. Generate RoPE embeddings on the fly
-        height, width = pixel_values.shape[-2:]
-        position_embeddings = self._generate_rope_embeddings(height, width, device=pixel_values.device)
+        # # 2. Generate RoPE embeddings on the fly
+        # height, width = pixel_values.shape[-2:]
+        # position_embeddings = self._generate_rope_embeddings(height, width, device=pixel_values.device)
         
-        # 3. Manually create attention mask if not using Flash Attention
-        # This is a simple mask that allows all tokens to attend to all other tokens.
-        batch_size, seq_len, _ = hidden_states.shape
-        attention_mask = torch.ones((batch_size, seq_len), device=pixel_values.device)
+        # # 3. Manually create attention mask if not using Flash Attention
+        # # This is a simple mask that allows all tokens to attend to all other tokens.
+        # batch_size, seq_len, _ = hidden_states.shape
+        # attention_mask = torch.ones((batch_size, seq_len), device=pixel_values.device)
+
+        # The RoPE embeddings are generated for a single image grid.
+        # We then expand them to match the batch size.
+        height, width = pixel_values.shape[-2:]
+        cos, sin = self._generate_rope_embeddings(height, width, device=pixel_values.device)
+        
+        # Expand for the batch dimension. Shape changes from (seq_len, dim) to (batch_size, seq_len, dim)
+        batch_size = pixel_values.shape[0]
+        position_embeddings = (
+            cos.unsqueeze(0).expand(batch_size, -1, -1),
+            sin.unsqueeze(0).expand(batch_size, -1, -1)
+        )
         
         # 4. Forward through the encoder, passing the RoPE embeddings
         encoder_outputs = self.encoder(
