@@ -39,7 +39,6 @@ class SiglipAttentionWithRope(SiglipAttention):
 
         if position_embeddings is not None:
             cos, sin = position_embeddings
-            print(f"[DEBUG] Applying RoPE. Q shape: {query_states.shape}, Cos shape: {cos.shape}")
             query_states, key_states = apply_rotary_pos_emb_vision(query_states, key_states, cos, sin)
 
         attn_output = F.scaled_dot_product_attention(
