@@ -6,7 +6,7 @@ import torch.nn.functional as F
 # Import original SigLIP classes to inherit from them
 from transformers.models.siglip.modeling_siglip import (
     SiglipAttention,
-    SiglipEncoderLayer,
+    SiglipEncoder,
     SiglipEncoderLayer,
     SiglipVisionTransformer,
     SiglipVisionConfig,
