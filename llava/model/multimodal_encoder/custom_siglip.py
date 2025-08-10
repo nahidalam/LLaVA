@@ -7,9 +7,11 @@ import torch.nn.functional as F
 from transformers.models.siglip.modeling_siglip import (
     SiglipAttention,
     SiglipEncoderLayer,
+    SiglipEncoderLayer,
     SiglipVisionTransformer,
     SiglipVisionConfig,
     BaseModelOutputWithPooling,
+    BaseModelOutput,
 )
 
 # Import our new helper functions
