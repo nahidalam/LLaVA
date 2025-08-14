@@ -14,7 +14,6 @@ from transformers.models.siglip.modeling_siglip import (
     BaseModelOutput,
 )
 
-# Import our new helper functions
 from .rope_vision import VisionRotaryEmbedding, apply_rotary_pos_emb_vision
 
 class SiglipAttentionWithRope(SiglipAttention):
@@ -27,7 +26,6 @@ class SiglipAttentionWithRope(SiglipAttention):
         **kwargs,
     ) -> tuple[torch.Tensor, Optional[torch.Tensor]]:
 
-        # print(f"[DEBUG SiglipAttentionWithRope] hidden_states.shape: {hidden_states.shape}")
         
         batch_size, seq_length, embed_dim = hidden_states.shape
 
@@ -60,14 +58,14 @@ class SiglipEncoderWithRope(SiglipEncoder):
     """
     def __init__(self, config: SiglipVisionConfig):
         super().__init__(config)
-        # Replace the original layers with our RoPE-compatible layers
+        # Replace the original layers with RoPE-compatible layers
         self.layers = nn.ModuleList([SiglipEncoderLayerWithRope(config) for _ in range(config.num_hidden_layers)])
 
     def forward(
         self,
         inputs_embeds,
         attention_mask: Optional[torch.Tensor] = None,
-        position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None, # Accept the new argument
+        position_embeddings: Optional[Tuple[torch.Tensor, torch.Tensor]] = None, 
         output_attentions: Optional[bool] = None,
         output_hidden_states: Optional[bool] = None,
     ) -> BaseModelOutput:
@@ -82,11 +80,9 @@ class SiglipEncoderWithRope(SiglipEncoder):
 
         hidden_states = inputs_embeds
         for i, encoder_layer in enumerate(self.layers):
-            # print(f"[DEBUG SiglipEncoderWithRope] Forwarding to layer {i}")
             if output_hidden_states:
                 encoder_states = encoder_states + (hidden_states,)
 
-            # Pass position_embeddings down to each layer
             layer_outputs = encoder_layer(
                 hidden_states,
                 attention_mask,
@@ -143,16 +139,14 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
     def __init__(self, config: SiglipVisionConfig):
         super().__init__(config)
         
-        # 1. Remove the original learned positional embeddings
+        # Remove the original absolute position embeddings
         self.embeddings.position_embedding = None
         self.embeddings.position_ids = None
 
-        # 2. Instantiate our new RoPE module
         head_dim = config.hidden_size // config.num_attention_heads
         self.rotary_pos_emb = VisionRotaryEmbedding(head_dim // 2)
         
-        # 3. Replace the encoder layers with our modified version
-        # self.encoder.layers = nn.ModuleList([SiglipEncoderLayerWithRope(config) for _ in range(config.num_hidden_layers)])
+        # Replace the encoder 
         self.encoder = SiglipEncoderWithRope(config)
     
     @property
@@ -173,20 +167,14 @@ class SiglipVisionTransformerWithRope(SiglipVisionTransformer):
         wpos_ids = torch.arange(grid_w, device=device).unsqueeze(0).expand(grid_h, -1).flatten()
         
         pos_ids = torch.stack([hpos_ids, wpos_ids], dim=-1)
-        max_grid_size = max(grid_h, grid_w)
+        max_grid_size = max(grid_h, grid_w) 
         rotary_pos_emb_full = self.rotary_pos_emb(max_grid_size)
         
         h_emb = rotary_pos_emb_full[pos_ids[:, 0]]
         w_emb = rotary_pos_emb_full[pos_ids[:, 1]]
 
-        # The original `emb` was shape (num_patches, 64).
-        # The `apply_rotary_pos_emb_vision` function expects an embedding of half the head dimension,
-        # as it will be duplicated to create the full dimension inside the rotation.
-        # We now correctly combine the H and W embeddings for a 2D rotation.
-        # The final embedding should be duplicated for the full head dimension.
         emb = torch.cat((h_emb, w_emb), dim=-1)
         
-        # The RoPE dimension is half the head dimension. We need to duplicate it.
         emb = torch.cat((emb, emb), dim=-1)
         return emb.cos(), emb.sin()
 
