@@ -97,7 +97,8 @@ class CLIPVisionEmbeddings(nn.Module):
         patch_pos_embed = patch_pos_embed.permute(0, 2, 3, 1).view(1, -1, dim)
 
         return torch.cat((class_pos_embed, patch_pos_embed), dim=1)
-
+		
+	#Reference from src/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py - Qwen2_5_VisionTransformerPretrainedModel.rot_pos_emb(grid_thw)
     def build_2d_positions(self, height: int, width: int, device: torch.device, dtype: torch.dtype) -> torch.Tensor:
         grid_h = height // self.patch_size  # height=336, patch_size = 14, grid_h = 24
         grid_w = width // self.patch_size   # width=336, patch_size = 14, grid_w = 24
@@ -159,6 +160,7 @@ def eager_attention_forward(
         attn_weights = None
     return attn_output, attn_weights
 
+#Reference from src/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py - apply_rotary_pos_emb_vision(q,k,cos,sin) and class Qwen2_5_VisionRotaryEmbedding
 def apply_rope_2d(q: torch.Tensor, k: torch.Tensor, rope_pos: torch.Tensor, theta: float):
     # q,k: (B,H,T,Dh), rope_pos: (B,T,2) with (row, col). Require Dh % 4 == 0
     B, H, T, Dh = q.shape
@@ -169,6 +171,7 @@ def apply_rope_2d(q: torch.Tensor, k: torch.Tensor, rope_pos: torch.Tensor, thet
     dtype = q.dtype
     device = q.device
 
+	## Reference from src/transformers/models/qwen2_5_vl/modeling_qwen2_5_vl.py - rotate_half()
     def rotate_half(x):
         x_even = x[..., ::2]
         x_odd = x[..., 1::2]
