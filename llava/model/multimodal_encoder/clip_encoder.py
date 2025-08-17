@@ -1,7 +1,12 @@
 import torch
 import torch.nn as nn
 
-from transformers import CLIPVisionModel, CLIPImageProcessor, CLIPVisionConfig
+#from transformers import CLIPVisionModel, CLIPImageProcessor, CLIPVisionConfig
+from transformers import CLIPImageProcessor
+from llava.model.multimodal_encoder.custom_clip_2d_rope import CLIPVisionModel
+from llava.model.multimodal_encoder.clip_custom_config import CLIPVisionCustomConfig
+
+from transformers.models.clip.configuration_clip import CLIPVisionConfig
 
 
 class CLIPVisionTower(nn.Module):
@@ -13,13 +18,20 @@ class CLIPVisionTower(nn.Module):
         self.vision_tower_name = vision_tower
         self.select_layer = args.mm_vision_select_layer
         self.select_feature = getattr(args, 'mm_vision_select_feature', 'patch')
+		self.use_vision_rope_2d=args.use_vision_rope_2d
+        self.rope_theta=args.rope_theta
 
         if not delay_load:
             self.load_model()
         elif getattr(args, 'unfreeze_mm_vision_tower', False):
             self.load_model()
         else:
-            self.cfg_only = CLIPVisionConfig.from_pretrained(self.vision_tower_name)
+            #self.cfg_only = CLIPVisionConfig.from_pretrained(self.vision_tower_name)
+            self.cfg_only = CLIPVisionCustomConfig.from_pretrained(
+                                    "openai/clip-vit-large-patch14-336",
+                                    use_vision_rope_2d=self.use_vision_rope_2d,
+                                    rope_theta=self.rope_theta,
+                                )
 
     def load_model(self, device_map=None):
         if self.is_loaded:
@@ -27,7 +39,12 @@ class CLIPVisionTower(nn.Module):
             return
 
         self.image_processor = CLIPImageProcessor.from_pretrained(self.vision_tower_name)
-        self.vision_tower = CLIPVisionModel.from_pretrained(self.vision_tower_name, device_map=device_map)
+		cfg_only = CLIPVisionCustomConfig.from_pretrained(
+                                "openai/clip-vit-large-patch14-336",
+                                use_vision_rope_2d=self.use_vision_rope_2d,
+                                rope_theta=self.rope_theta,
+                            )
+        self.vision_tower = CLIPVisionModel.from_pretrained(self.vision_tower_name, device_map=device_map,config=cfg_only)
         self.vision_tower.requires_grad_(False)
 
         self.is_loaded = True
