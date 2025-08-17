@@ -56,7 +56,6 @@ class CLIPVisionEmbeddings(nn.Module):
         if not self.use_vision_rope_2d:
             self.position_embedding = nn.Embedding(self.num_positions, self.embed_dim)
             self.register_buffer("position_ids", torch.arange(self.num_positions).expand((1, -1)), persistent=False) ## position_ids - 0 to 16
-            print("use_ope is False")
     def interpolate_pos_encoding(self, embeddings: torch.Tensor, height: int, width: int) -> torch.Tensor:
         """
         This method allows to interpolate the pre-trained position encodings, to be able to use the model on higher resolution
@@ -124,6 +123,7 @@ class CLIPVisionEmbeddings(nn.Module):
         embeddings = torch.cat([class_embeds, patch_embeds], dim=1) ## torch.Size([1, 577, 1024])
         ## Original positional embeddings from CLIP
         if not self.use_vision_rope_2d:
+			print("Using CLIP's Postional Embedding Calculation")
             if interpolate_pos_encoding:
                 embeddings = embeddings + self.interpolate_pos_encoding(embeddings, height, width)
             else:
@@ -131,6 +131,7 @@ class CLIPVisionEmbeddings(nn.Module):
             return embeddings
         else:
             ## 2D Rope position input_ids
+			print("Using 2D-ROPE Calculation")
             rope_pos = self.build_2d_positions(height, width, embeddings.device, embeddings.dtype)
             rope_pos = rope_pos.unsqueeze(0).expand(batch_size, -1, -1) ## torch.Size([1, 577, 2])
             return embeddings, rope_pos
