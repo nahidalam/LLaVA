@@ -91,7 +91,7 @@ pip install -e .
 3. Install additional packages for training cases
 ```
 pip install -e ".[train]"
-pip install flash-attn==2.6.3 --no-build-isolation --no-cache-dir
+pip install flash-attn==2.7.3 --no-build-isolation --no-cache-dir
 ```
 
 ### Upgrade to latest code base
