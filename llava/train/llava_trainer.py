@@ -3,8 +3,10 @@ import torch
 import torch.nn as nn
 
 from torch.utils.data import Sampler
+from torch.utils.data import Dataset
 
 from transformers import Trainer
+from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
 from transformers.trainer import (
     is_sagemaker_mp_enabled,
     get_parameter_names,
