@@ -40,3 +40,4 @@ serve_images/
 *.user
 *.userosscache
 *.slnx.sqlite
+*.txt

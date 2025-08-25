@@ -10,7 +10,7 @@ def build_vision_tower(vision_tower_cfg, **kwargs):
     if vision_tower and ("apple/aimv2" in vision_tower or "aim-v2" in vision_tower.lower() or "aimv2" in vision_tower.lower()):
         return Aimv2VisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
 
-    if "siglip" in vision_tower.lower():
+    if "siglip" in vision_tower.lower() or "gemma3-vision-encoder" in vision_tower:
         return SiglipVisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
 
     if os.path.exists(vision_tower) or vision_tower.startswith("openai") or vision_tower.startswith("laion") or "ShareGPT4V" in vision_tower:
