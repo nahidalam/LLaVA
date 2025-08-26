@@ -138,8 +138,6 @@ class LlavaMetaForCausalLM(ABC):
         return self.get_model().get_vision_tower()
 
 
-    # In llava/model/llava_arch.py
-
     def encode_images(self, images):
         image_features = self.get_model().get_vision_tower()(images)
         image_features = self.get_model().mm_projector(image_features)
