@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 
 from torch.utils.data import Sampler
+from typing import List, Optional, Dict, Any, Union
 
 from transformers import Trainer
 from transformers.trainer import (
@@ -13,7 +14,6 @@ from transformers.trainer import (
 )
 import torch.nn as nn
 ALL_LAYERNORM_LAYERS = [nn.LayerNorm]
-from typing import List, Optional
 
 
 def maybe_zero_3(param, ignore_status=False, name=None):
@@ -133,6 +133,60 @@ class LengthGroupedSampler(Sampler):
 
 class LLaVATrainer(Trainer):
 
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
+        """
+        Final override of compute_loss.
+        This version bypasses the model's internal loss calculation and handles the shape mismatch.
+        """
+        # 1. Pop labels from inputs. We'll use this original, un-padded tensor.
+        labels = inputs.pop("labels", None)
+
+        # 2. Get the model outputs (which will contain the long-sequence logits)
+        outputs = model(**inputs)
+        logits = outputs.logits
+
+        # 3. Manually compute the Cross-Entropy loss
+        loss = None
+        if logits is not None and labels is not None:
+            # Get the full sequence length from the logits
+            logits_seq_len = logits.shape[1]
+
+            # Pad the original labels to match the logits' sequence length
+            # The new parts will be filled with IGNORE_INDEX, which the loss function ignores.
+            padded_labels = torch.full((labels.shape[0], logits_seq_len), -100, dtype=labels.dtype, device=labels.device)
+            padded_labels[:, :labels.shape[1]] = labels
+
+            # Standard loss calculation for language models
+            # Shift so that tokens < n predict token n
+            shift_logits = logits[..., :-1, :].contiguous()
+            shift_labels = padded_labels[..., 1:].contiguous()
+
+            # Flatten the tokens
+            loss_fct = nn.CrossEntropyLoss()
+            shift_logits = shift_logits.view(-1, self.model.config.vocab_size)
+            shift_labels = shift_labels.view(-1)
+
+            # Ensure labels are on the same device as logits
+            shift_labels = shift_labels.to(shift_logits.device)
+
+            loss = loss_fct(shift_logits, shift_labels)
+
+        # Final check on our manually computed loss
+#         if self.is_world_process_zero() and self.state.global_step % 1 == 0:
+#             print("\n" + "="*50)
+#             print(f"MANUAL LOSS CALCULATION STEP: {self.state.global_step}")
+#             print("="*50)
+#             print("\n[DEBUG] Checking Manually Calculated Loss Value...")
+#             if loss is not None and torch.isnan(loss):
+#                 print("  - [CRITICAL] Manual loss calculation resulted in NaN!")
+#             elif loss is not None:
+#                 print(f"  - [OK] Manual loss calculation successful: {loss.item()}")
+#             else:
+#                 print("  - [CRITICAL] Manual loss calculation failed (result is None)!")
+#             print("\n" + "="*50 + "\n")
+
+        return (loss, outputs) if return_outputs else loss
+
     def _get_train_sampler(self, train_dataset=None) -> Optional[torch.utils.data.Sampler]:
         if train_dataset is None:
             train_dataset = self.train_dataset
@@ -151,12 +205,6 @@ class LLaVATrainer(Trainer):
             return super()._get_train_sampler(train_dataset)
 
     def create_optimizer(self):
-        """
-        Setup the optimizer.
-
-        We provide a reasonable default that works well. If you want to use something else, you can pass a tuple in the
-        Trainer's init through `optimizers`, or subclass and override this method in a subclass.
-        """
         if is_sagemaker_mp_enabled():
             return super().create_optimizer()
 
@@ -238,7 +286,6 @@ class LLaVATrainer(Trainer):
             run_dir = self._get_output_dir(trial=trial)
             output_dir = os.path.join(run_dir, checkpoint_folder)
 
-            # Only save Adapter
             keys_to_match = ['mm_projector', 'vision_resampler']
             if getattr(self.args, "use_im_start_end", False):
                 keys_to_match.extend(['embed_tokens', 'embed_in'])
@@ -249,12 +296,8 @@ class LLaVATrainer(Trainer):
                 self.model.config.save_pretrained(output_dir)
                 torch.save(weight_to_save, os.path.join(output_dir, f'mm_projector.bin'))
         else:
-            #super(LLaVATrainer, self)._save_checkpoint(model, trial, metrics)
-            # fix for newer transformer
             if metrics:
-                # log/save metrics manually if needed
                 logger.info(f"Metrics while saving checkpoints {metrics}")
-
 
             super(LLaVATrainer, self)._save_checkpoint(model, trial)
 
@@ -262,7 +305,6 @@ class LLaVATrainer(Trainer):
         if getattr(self.args, 'tune_mm_mlp_adapter', False):
             pass
         else:
-            # Patch generation_config to avoid HF validation error
             if hasattr(self.model, "generation_config") and self.model.generation_config is not None:
                 gen_cfg = self.model.generation_config
                 if not gen_cfg.do_sample:

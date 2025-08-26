@@ -1,4 +1,4 @@
-from llava.model.multimodal_encoder.siglip_encoder import SiglipVisionTower
+from llava.model.multimodal_encoder.gemma_encoder import GemmaVisionTower
 from PIL import Image
 
 # 1. Configure the minimal args
