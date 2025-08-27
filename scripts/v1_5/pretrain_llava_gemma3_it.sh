@@ -6,8 +6,8 @@ deepspeed llava/train/train_mem.py \
     --deepspeed ./scripts/zero2.json \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
     --version $PROMPT_VERSION \
-    --data_path /dev/data/LLaVA-Pretrain/blip_laion_cc_sbu_558k.json \
-    --image_folder  /dev/data/images \
+    --data_path ~/data/LLaVA_Pretrain/blip_laion_cc_sbu_558k.json \
+    --image_folder  ~/data/images \
     --mm_projector_type mlp2x_gelu \
     --tune_mm_mlp_adapter True \
     --freeze_backbone True \
@@ -16,11 +16,12 @@ deepspeed llava/train/train_mem.py \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --bf16 True \
-    --output_dir checkpoints/llava-$MODEL_VERSION-pretrain \
+    --output_dir ./checkpoints/llava-gemma3_4b_it_siglip-pretrain \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 1 \
-    --per_device_eval_batch_size 1 \
+    --per_device_train_batch_size 8 \
+    --per_device_eval_batch_size 4 \
     --gradient_accumulation_steps 4 \
+    --eval_strategy "no" \
     --save_strategy "steps" \
     --save_steps 24000 \
     --save_total_limit 1 \
