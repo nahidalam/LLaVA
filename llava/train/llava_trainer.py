@@ -133,57 +133,87 @@ class LengthGroupedSampler(Sampler):
 
 class LLaVATrainer(Trainer):
 
+
     def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
         """
-        Final override of compute_loss.
-        This version bypasses the model's internal loss calculation and handles the shape mismatch.
+        Computes the loss.
+        This version uses a special manual loss calculation for gemma vision towers
+        and the standard internal loss for all other models, preserving original
+        Trainer functionality like label smoothing for the standard path.
         """
-        # 1. Pop labels from inputs. We'll use this original, un-padded tensor.
-        labels = inputs.pop("labels", None)
+        is_gemma_vision_tower = 'gemma' in getattr(self.model.config, 'mm_vision_tower', '')
 
-        # 2. Get the model outputs (which will contain the long-sequence logits)
-        outputs = model(**inputs)
-        logits = outputs.logits
+        if is_gemma_vision_tower:
+            # --- PATH 1: MANUAL LOSS CALCULATION FOR GEMMA (OUR FIX) ---
+            labels = inputs.pop("labels", None)
+            outputs = model(**inputs)
+            logits = outputs.logits
 
-        # 3. Manually compute the Cross-Entropy loss
-        loss = None
-        if logits is not None and labels is not None:
-            # Get the full sequence length from the logits
-            logits_seq_len = logits.shape[1]
+            loss = None
+            if logits is not None and labels is not None:
+                logits_seq_len = logits.shape[1]
+                padded_labels = torch.full((labels.shape[0], logits_seq_len), -100, dtype=labels.dtype, device=labels.device)
+                padded_labels[:, :labels.shape[1]] = labels
 
-            # Pad the original labels to match the logits' sequence length
-            # The new parts will be filled with IGNORE_INDEX, which the loss function ignores.
-            padded_labels = torch.full((labels.shape[0], logits_seq_len), -100, dtype=labels.dtype, device=labels.device)
-            padded_labels[:, :labels.shape[1]] = labels
+                shift_logits = logits[..., :-1, :].contiguous()
+                shift_labels = padded_labels[..., 1:].contiguous()
 
-            # Standard loss calculation for language models
-            # Shift so that tokens < n predict token n
-            shift_logits = logits[..., :-1, :].contiguous()
-            shift_labels = padded_labels[..., 1:].contiguous()
+                loss_fct = nn.CrossEntropyLoss()
+                shift_logits = shift_logits.view(-1, self.model.config.vocab_size)
+                shift_labels = shift_labels.view(-1)
+                shift_labels = shift_labels.to(shift_logits.device)
+                loss = loss_fct(shift_logits, shift_labels)
 
-            # Flatten the tokens
-            loss_fct = nn.CrossEntropyLoss()
-            shift_logits = shift_logits.view(-1, self.model.config.vocab_size)
-            shift_labels = shift_labels.view(-1)
+        else:
+            # --- PATH 2: ORIGINAL TRANSFORMERS TRAINER LOGIC (FOR CLIP, ETC.) ---
+            num_items_in_batch = kwargs.get("num_items_in_batch", None)
+            if (self.label_smoother is not None or self.compute_loss_func is not None) and "labels" in inputs:
+                labels = inputs.pop("labels")
+            else:
+                labels = None
 
-            # Ensure labels are on the same device as logits
-            shift_labels = shift_labels.to(shift_logits.device)
+            if hasattr(self, "model_accepts_loss_kwargs") and self.model_accepts_loss_kwargs:
+                loss_kwargs = {}
+                if num_items_in_batch is not None:
+                    loss_kwargs["num_items_in_batch"] = num_items_in_batch
+                inputs = {**inputs, **loss_kwargs}
 
-            loss = loss_fct(shift_logits, shift_labels)
+            outputs = model(**inputs)
 
-        # Final check on our manually computed loss
-#         if self.is_world_process_zero() and self.state.global_step % 1 == 0:
-#             print("\n" + "="*50)
-#             print(f"MANUAL LOSS CALCULATION STEP: {self.state.global_step}")
-#             print("="*50)
-#             print("\n[DEBUG] Checking Manually Calculated Loss Value...")
-#             if loss is not None and torch.isnan(loss):
-#                 print("  - [CRITICAL] Manual loss calculation resulted in NaN!")
-#             elif loss is not None:
-#                 print(f"  - [OK] Manual loss calculation successful: {loss.item()}")
-#             else:
-#                 print("  - [CRITICAL] Manual loss calculation failed (result is None)!")
-#             print("\n" + "="*50 + "\n")
+            if self.args.past_index >= 0:
+                self._past = outputs[self.args.past_index]
+
+            if labels is not None:
+                if hasattr(self, "accelerator"):
+                    unwrapped_model = self.accelerator.unwrap_model(model)
+                else:
+                    unwrapped_model = model
+
+                if hasattr(unwrapped_model, "base_model") and hasattr(unwrapped_model.base_model, "model") and hasattr(unwrapped_model.base_model.model, "_get_name"):
+                     model_name = unwrapped_model.base_model.model._get_name()
+                elif hasattr(unwrapped_model, "_get_name"):
+                     model_name = unwrapped_model._get_name()
+                else:
+                     model_name = unwrapped_model.__class__.__name__
+
+                from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
+
+                if self.compute_loss_func is not None:
+                    loss = self.compute_loss_func(outputs, labels, num_items_in_batch=num_items_in_batch)
+                elif model_name in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES.values():
+                    loss = self.label_smoother(outputs, labels, shift_labels=True)
+                else:
+                    loss = self.label_smoother(outputs, labels)
+            else:
+                if isinstance(outputs, dict) and "loss" not in outputs:
+                    raise ValueError(
+                        "The model did not return a loss from the inputs, only the following keys: "
+                        f"{','.join(outputs.keys())}. For reference, the inputs it received are {','.join(inputs.keys())}."
+                    )
+                loss = outputs["loss"] if isinstance(outputs, dict) else outputs[0]
+
+            if hasattr(self, "model_accepts_loss_kwargs") and self.args.average_tokens_across_devices and self.model_accepts_loss_kwargs:
+                loss *= self.accelerator.num_processes
 
         return (loss, outputs) if return_outputs else loss
 

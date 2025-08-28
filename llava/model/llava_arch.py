@@ -142,13 +142,8 @@ class LlavaMetaForCausalLM(ABC):
         image_features = self.get_model().get_vision_tower()(images)
         image_features = self.get_model().mm_projector(image_features)
 
-        # ====================================================================================
-        # ================== FIX 2: Brute-force clip the features ============================
-        image_features = torch.clamp(image_features, min=-10.0, max=10.0)
-        # ====================================================================================
-
-#         if torch.distributed.is_initialized() and torch.distributed.get_rank() == 0:
-#             print(f"[VERIFY CLAMP] Post-clipping stats: mean={image_features.mean().item():.4f}, max={image_features.max().item():.4f}, min={image_features.min().item():.4f}")
+        if 'gemma' in getattr(self.get_model().config, 'mm_vision_tower', ''):
+            image_features = torch.clamp(image_features, min=-10.0, max=10.0)
 
         return image_features
 
