@@ -22,7 +22,7 @@ from .multimodal_encoder.builder import build_vision_tower
 from .multimodal_projector.builder import build_vision_projector
 
 from llava.constants import IGNORE_INDEX, IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_PATCH_TOKEN, DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN
-
+import torch.nn.functional as F
 from llava.mm_utils import get_anyres_image_grid_shape
 
 
@@ -137,9 +137,14 @@ class LlavaMetaForCausalLM(ABC):
     def get_vision_tower(self):
         return self.get_model().get_vision_tower()
 
+
     def encode_images(self, images):
         image_features = self.get_model().get_vision_tower()(images)
         image_features = self.get_model().mm_projector(image_features)
+
+        if 'gemma' in getattr(self.get_model().config, 'mm_vision_tower', ''):
+            image_features = torch.clamp(image_features, min=-10.0, max=10.0)
+
         return image_features
 
     def prepare_inputs_labels_for_multimodal(

@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 
 from torch.utils.data import Sampler
+from typing import List, Optional, Dict, Any, Union
 
 from transformers import Trainer
 from transformers.trainer import (
@@ -13,7 +14,6 @@ from transformers.trainer import (
 )
 import torch.nn as nn
 ALL_LAYERNORM_LAYERS = [nn.LayerNorm]
-from typing import List, Optional
 
 
 def maybe_zero_3(param, ignore_status=False, name=None):
@@ -133,6 +133,90 @@ class LengthGroupedSampler(Sampler):
 
 class LLaVATrainer(Trainer):
 
+
+    def compute_loss(self, model, inputs, return_outputs=False, **kwargs):
+        """
+        Computes the loss.
+        This version uses a special manual loss calculation for gemma vision towers
+        and the standard internal loss for all other models, preserving original
+        Trainer functionality like label smoothing for the standard path.
+        """
+        is_gemma_vision_tower = 'gemma' in getattr(self.model.config, 'mm_vision_tower', '')
+
+        if is_gemma_vision_tower:
+            # --- PATH 1: MANUAL LOSS CALCULATION FOR GEMMA (OUR FIX) ---
+            labels = inputs.pop("labels", None)
+            outputs = model(**inputs)
+            logits = outputs.logits
+
+            loss = None
+            if logits is not None and labels is not None:
+                logits_seq_len = logits.shape[1]
+                padded_labels = torch.full((labels.shape[0], logits_seq_len), -100, dtype=labels.dtype, device=labels.device)
+                padded_labels[:, :labels.shape[1]] = labels
+
+                shift_logits = logits[..., :-1, :].contiguous()
+                shift_labels = padded_labels[..., 1:].contiguous()
+
+                loss_fct = nn.CrossEntropyLoss()
+                shift_logits = shift_logits.view(-1, self.model.config.vocab_size)
+                shift_labels = shift_labels.view(-1)
+                shift_labels = shift_labels.to(shift_logits.device)
+                loss = loss_fct(shift_logits, shift_labels)
+
+        else:
+            # --- PATH 2: ORIGINAL TRANSFORMERS TRAINER LOGIC (FOR CLIP, ETC.) ---
+            num_items_in_batch = kwargs.get("num_items_in_batch", None)
+            if (self.label_smoother is not None or self.compute_loss_func is not None) and "labels" in inputs:
+                labels = inputs.pop("labels")
+            else:
+                labels = None
+
+            if hasattr(self, "model_accepts_loss_kwargs") and self.model_accepts_loss_kwargs:
+                loss_kwargs = {}
+                if num_items_in_batch is not None:
+                    loss_kwargs["num_items_in_batch"] = num_items_in_batch
+                inputs = {**inputs, **loss_kwargs}
+
+            outputs = model(**inputs)
+
+            if self.args.past_index >= 0:
+                self._past = outputs[self.args.past_index]
+
+            if labels is not None:
+                if hasattr(self, "accelerator"):
+                    unwrapped_model = self.accelerator.unwrap_model(model)
+                else:
+                    unwrapped_model = model
+
+                if hasattr(unwrapped_model, "base_model") and hasattr(unwrapped_model.base_model, "model") and hasattr(unwrapped_model.base_model.model, "_get_name"):
+                     model_name = unwrapped_model.base_model.model._get_name()
+                elif hasattr(unwrapped_model, "_get_name"):
+                     model_name = unwrapped_model._get_name()
+                else:
+                     model_name = unwrapped_model.__class__.__name__
+
+                from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
+
+                if self.compute_loss_func is not None:
+                    loss = self.compute_loss_func(outputs, labels, num_items_in_batch=num_items_in_batch)
+                elif model_name in MODEL_FOR_CAUSAL_LM_MAPPING_NAMES.values():
+                    loss = self.label_smoother(outputs, labels, shift_labels=True)
+                else:
+                    loss = self.label_smoother(outputs, labels)
+            else:
+                if isinstance(outputs, dict) and "loss" not in outputs:
+                    raise ValueError(
+                        "The model did not return a loss from the inputs, only the following keys: "
+                        f"{','.join(outputs.keys())}. For reference, the inputs it received are {','.join(inputs.keys())}."
+                    )
+                loss = outputs["loss"] if isinstance(outputs, dict) else outputs[0]
+
+            if hasattr(self, "model_accepts_loss_kwargs") and self.args.average_tokens_across_devices and self.model_accepts_loss_kwargs:
+                loss *= self.accelerator.num_processes
+
+        return (loss, outputs) if return_outputs else loss
+
     def _get_train_sampler(self, train_dataset=None) -> Optional[torch.utils.data.Sampler]:
         if train_dataset is None:
             train_dataset = self.train_dataset
@@ -151,12 +235,6 @@ class LLaVATrainer(Trainer):
             return super()._get_train_sampler(train_dataset)
 
     def create_optimizer(self):
-        """
-        Setup the optimizer.
-
-        We provide a reasonable default that works well. If you want to use something else, you can pass a tuple in the
-        Trainer's init through `optimizers`, or subclass and override this method in a subclass.
-        """
         if is_sagemaker_mp_enabled():
             return super().create_optimizer()
 
@@ -238,7 +316,6 @@ class LLaVATrainer(Trainer):
             run_dir = self._get_output_dir(trial=trial)
             output_dir = os.path.join(run_dir, checkpoint_folder)
 
-            # Only save Adapter
             keys_to_match = ['mm_projector', 'vision_resampler']
             if getattr(self.args, "use_im_start_end", False):
                 keys_to_match.extend(['embed_tokens', 'embed_in'])
@@ -249,12 +326,8 @@ class LLaVATrainer(Trainer):
                 self.model.config.save_pretrained(output_dir)
                 torch.save(weight_to_save, os.path.join(output_dir, f'mm_projector.bin'))
         else:
-            #super(LLaVATrainer, self)._save_checkpoint(model, trial, metrics)
-            # fix for newer transformer
             if metrics:
-                # log/save metrics manually if needed
                 logger.info(f"Metrics while saving checkpoints {metrics}")
-
 
             super(LLaVATrainer, self)._save_checkpoint(model, trial)
 
@@ -262,7 +335,6 @@ class LLaVATrainer(Trainer):
         if getattr(self.args, 'tune_mm_mlp_adapter', False):
             pass
         else:
-            # Patch generation_config to avoid HF validation error
             if hasattr(self.model, "generation_config") and self.model.generation_config is not None:
                 gen_cfg = self.model.generation_config
                 if not gen_cfg.do_sample:

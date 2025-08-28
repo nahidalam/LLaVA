@@ -23,4 +23,4 @@ pixel = tower.image_processor(images=img, return_tensors="pt").pixel_values
 features = tower(pixel)
 print("Output shape :", features.shape)      # expect (1, 196, 768)
 print("Dummy shape  :", tower.dummy_feature.shape)
-print("AIM v2 encoder is working")
+print("Gemma encoder is working")
