@@ -46,11 +46,25 @@ class SiglipVisionTower(nn.Module):
         if type(images) is list:
             image_features = []
             for image in images:
-                image_forward_out = self.vision_tower(image.to(device=self.device, dtype=self.dtype).unsqueeze(0), output_hidden_states=True)
+                #image_forward_out = self.vision_tower(image.to(device=self.device, dtype=self.dtype).unsqueeze(0), output_hidden_states=True)
+                # added to handle patch mismatch for siglip extracted from gemma3-4b-pt
+                image_forward_out = self.vision_tower(
+                    image.to(device=self.device, dtype=self.dtype).unsqueeze(0),
+                    output_hidden_states=True,
+                    interpolate_pos_encoding=True
+                )
+
                 image_feature = self.feature_select(image_forward_out).to(image.dtype)
                 image_features.append(image_feature)
         else:
-            image_forward_outs = self.vision_tower(images.to(device=self.device, dtype=self.dtype), output_hidden_states=True)
+            #image_forward_outs = self.vision_tower(images.to(device=self.device, dtype=self.dtype), output_hidden_states=True)
+            # added to handle patch mismatch for siglip extracted from gemma3-4b-pt
+            image_forward_outs = self.vision_tower(
+                images.to(device=self.device, dtype=self.dtype),
+                output_hidden_states=True,
+                interpolate_pos_encoding=True
+            )   
+
             image_features = self.feature_select(image_forward_outs).to(images.dtype)
 
         return image_features
@@ -125,7 +139,14 @@ class SiglipVisionTowerS2(SiglipVisionTower):
 
     @torch.no_grad()
     def forward_feature(self, images):
-        image_forward_outs = self.vision_tower(images.to(device=self.device, dtype=self.dtype), output_hidden_states=True)
+        #image_forward_outs = self.vision_tower(images.to(device=self.device, dtype=self.dtype), output_hidden_states=True)
+        # added to handle path mismatch from siglip extracted from gemma3-4b-pt
+        image_forward_outs = self.vision_tower(
+            images.to(device=self.device, dtype=self.dtype),
+            output_hidden_states=True,
+            interpolate_pos_encoding=True
+        )
+
         image_features = self.feature_select(image_forward_outs).to(images.dtype)
         return image_features
 
