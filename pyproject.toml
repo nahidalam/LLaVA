@@ -7,7 +7,7 @@ name = "llava"
 version = "1.2.2.post1"
 description = "Towards GPT-4 like large language and visual assistant."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
@@ -16,7 +16,6 @@ classifiers = [
 dependencies = [
     "torch==2.6.0",
     "torchvision==0.21.0",
-    "torchaudio==2.6.0",
     "transformers==4.55.2",
     "sentencepiece==0.1.99",
     "shortuuid",
