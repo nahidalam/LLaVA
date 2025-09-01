@@ -2,10 +2,11 @@ import os
 from .clip_encoder import CLIPVisionTower, CLIPVisionTowerS2
 from .siglip_encoder import SiglipVisionTower
 from .aimv2_encoder import Aimv2VisionTower
-from .custom_siglip import SiglipVisionTransformerWithRope
-from transformers import SiglipVisionModel, SiglipVisionConfig, CLIPVisionModel
+from transformers import SiglipVisionModel, SiglipVisionConfig, CLIPVisionModel, Siglip2VisionModel, Aimv2VisionModel
 from transformers.models.clip.modeling_clip import CLIPAttention
 from transformers.models.siglip.modeling_siglip import SiglipAttention
+from transformers.models.siglip2.modeling_siglip2 import Siglip2Attention
+from transformers.models.aimv2.modeling_aimv2 import Aimv2Attention
 from .custom_rope_vit import convert_vision_encoder_to_rope
 
 from huggingface_hub import hf_hub_download
@@ -17,12 +18,26 @@ def build_vision_tower(vision_tower_cfg, **kwargs):
 
     if getattr(vision_tower_cfg, 'use_rope_vision', False):
         ENCODER_SPECS = {
+            'clip': {
+                'model_class': CLIPVisionModel,
+                'attention_class': CLIPAttention,
+                'pos_embed_path': 'vision_model.embeddings.position_embedding',
+                'tower_wrapper_class': CLIPVisionTower,
+                'grid_dim_divisor': 14
+            },
             'siglip': {
                 'model_class': SiglipVisionModel,
                 'attention_class': SiglipAttention,
                 'pos_embed_path': 'vision_model.embeddings.position_embedding',
                 'tower_wrapper_class': SiglipVisionTower,
                 'grid_dim_divisor': 16 # e.g., 384 / 16 = 24
+            },
+            'aimv2': {
+                'model_class': Aimv2VisionModel,
+                'attention_class': Aimv2Attention,
+                'pos_embed_path': 'embeddings.position_embedding',
+                'tower_wrapper_class': Aimv2VisionTower, 
+                'grid_dim_divisor': 14
             }
             # TO DO: add specs for other encoders
         }
@@ -32,6 +47,8 @@ def build_vision_tower(vision_tower_cfg, **kwargs):
             spec = ENCODER_SPECS['clip']
         elif 'siglip' in vision_tower.lower():
             spec = ENCODER_SPECS['siglip']
+        elif 'aimv2' in vision_tower.lower():
+            spec = ENCODER_SPECS['aimv2']
         
         if spec is None:
             raise ValueError(f"RoPE conversion is not yet configured for vision tower: {vision_tower}")

@@ -6,7 +6,7 @@ deepspeed llava/train/train_mem.py \
     --version plain \
     --data_path /content/drive/MyDrive/MRoPE/blip_laion_cc_sbu_558.json \
     --image_folder /content/drive/MyDrive/MRoPE/smallest-images \
-    --vision_tower google/siglip-base-patch16-256 \
+    --vision_tower apple/aimv2-large-patch14-224 \
     --use_rope_vision True \
     --mm_projector_type mlp2x_gelu \
     --tune_mm_mlp_adapter True \
@@ -14,11 +14,11 @@ deepspeed llava/train/train_mem.py \
     --mm_use_im_start_end False \
     --mm_use_im_patch_token False \
     --bf16 True \
-    --output_dir ./checkpoints/llava-v1.5-7b-pretrain-siglip-base-patch16-256 \
+    --output_dir ./checkpoints/llava-v1.5-7b-pretrain-aimv2-large-patch14-224 \
     --num_train_epochs 1 \
-    --per_device_train_batch_size 4 \
+    --per_device_train_batch_size 16 \
     --per_device_eval_batch_size 4 \
-    --gradient_accumulation_steps 16 \
+    --gradient_accumulation_steps 1 \
     --eval_strategy "no" \
     --save_strategy "steps" \
     --save_steps 5000 \
