@@ -5,7 +5,6 @@ from functools import reduce
 import operator
 from transformers.models.clip.modeling_clip import CLIPAttention
 
-# Helper function for RoPE
 def rotate_half(x):
     """Rotates half the hidden dims of the input."""
     x1 = x[..., : x.shape[-1] // 2]
@@ -32,10 +31,6 @@ class RoPE2DEmbedding(nn.Module):
     def __init__(self, head_dim, grid_dims=(16, 16), base=10000):
         super().__init__()
         
-        # --- DEBUG PRINT ---
-        print(f"\n--- [DEBUG RoPE2DEmbedding __init__] ---")
-        print(f"  - Initializing with head_dim: {head_dim}, grid_dims: {grid_dims}")
-        
         if head_dim % 4 != 0:
             raise ValueError("head_dim must be divisible by 4 for 2D RoPE.")
 
@@ -44,7 +39,6 @@ class RoPE2DEmbedding(nn.Module):
         
         pos_dim_per_axis = head_dim // 2
         
-        # This creates the full set of frequencies for one axis
         inv_freq = 1.0 / (base ** (torch.arange(0, pos_dim_per_axis, 2).float() / pos_dim_per_axis))
         
         max_grid_dim = max(self.grid_h, self.grid_w)
@@ -54,11 +48,6 @@ class RoPE2DEmbedding(nn.Module):
         
         emb_1d_lookup = torch.cat((freqs_1d, freqs_1d), dim=-1)
         
-        # --- DEBUG PRINT ---
-        print(f"  - pos_dim_per_axis: {pos_dim_per_axis}")
-        print(f"  - inv_freq shape: {inv_freq.shape}")
-        print(f"  - freqs_1d shape: {freqs_1d.shape}")
-        print(f"  - emb_1d_lookup shape: {emb_1d_lookup.shape}")
 
         h_indices = torch.arange(self.grid_h).unsqueeze(1).expand(-1, self.grid_w)
         w_indices = torch.arange(self.grid_w).unsqueeze(0).expand(self.grid_h, -1)
@@ -69,13 +58,6 @@ class RoPE2DEmbedding(nn.Module):
         emb_2d = torch.cat((h_embeds, w_embeds), dim=-1)
         
         emb_flat = emb_2d.reshape(-1, self.head_dim)
-        
-        # --- DEBUG PRINT ---
-        print(f"  - h_embeds shape: {h_embeds.shape}")
-        print(f"  - w_embeds shape: {w_embeds.shape}")
-        print(f"  - emb_2d (concatenated) shape: {emb_2d.shape}")
-        print(f"  - emb_flat (final cache) shape: {emb_flat.shape}")
-        print(f"--- [DEBUG RoPE2DEmbedding __init__] End ---\n")
         
         self.register_buffer("cos_cache", emb_flat.cos(), persistent=False)
         self.register_buffer("sin_cache", emb_flat.sin(), persistent=False)
@@ -95,13 +77,12 @@ class RoPEVisionAttention(nn.Module):
         self.head_dim = original_attention_module.head_dim
         self.scale = self.head_dim**-0.5
         
-        # Copy the weight matrices directly to preserve pre-trained knowledge
         self.k_proj = original_attention_module.k_proj
         self.v_proj = original_attention_module.v_proj
         self.q_proj = original_attention_module.q_proj
         self.out_proj = original_attention_module.out_proj
         
-        # Instantiate our new 2D RoPE module
+        # Instantiate 2D RoPE module
         self.rope_2d = RoPE2DEmbedding(self.head_dim, grid_dims)
 
     def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
@@ -109,10 +90,6 @@ class RoPEVisionAttention(nn.Module):
 
     def forward(self, hidden_states, attention_mask=None, causal_attention_mask=None, output_attentions=False):
         bsz, seq_len, embed_dim = hidden_states.size()
-        
-        # --- DEBUG PRINT ---
-        print(f"\n--- [DEBUG RoPEVisionAttention forward] ---")
-        print(f"  - Input hidden_states shape: {hidden_states.shape}")
 
         query_states = self.q_proj(hidden_states)
         key_states = self.k_proj(hidden_states)
@@ -123,7 +100,33 @@ class RoPEVisionAttention(nn.Module):
         value_states = self._shape(value_states, seq_len, bsz)
 
         cos_sin_cache = self.rope_2d()
-        query_states, key_states = apply_2d_rope(query_states, key_states, cos_sin_cache)
+
+        # The cache length corresponds to the number of patches (e.g., 576 for a 24x24 grid)
+        num_patches = cos_sin_cache[0].shape[0]
+
+        # Check if a [CLS] token is present by comparing sequence lengths
+        if seq_len > num_patches:
+            # This is a CLIP-style model with a [CLS] token
+            if seq_len != num_patches + 1:
+                raise ValueError(
+                    f"Input sequence length ({seq_len}) is not equal to number of patches ({num_patches}) + 1 ([CLS] token). "
+                    "Please check your architecture."
+                )
+            
+            # Separate the [CLS] token from the patch tokens
+            query_cls = query_states[:, :, :1, :]
+            key_cls = key_states[:, :, :1, :]
+            
+            query_patches = query_states[:, :, 1:, :]
+            key_patches = key_states[:, :, 1:, :]
+
+            query_patches, key_patches = apply_2d_rope(query_patches, key_patches, cos_sin_cache)
+            
+            # Concatenate the [CLS] token back with the rotated patch tokens
+            query_states = torch.cat((query_cls, query_patches), dim=2)
+            key_states = torch.cat((key_cls, key_patches), dim=2)
+        elif seq_len == num_patches:
+            query_states, key_states = apply_2d_rope(query_states, key_states, cos_sin_cache)
         
         proj_shape = (bsz * self.num_heads, -1, self.head_dim)
         query_states, key_states, value_states = [t.view(*proj_shape) for t in [query_states, key_states, value_states]]
@@ -140,10 +143,6 @@ class RoPEVisionAttention(nn.Module):
         attn_output = attn_output.view(bsz, self.num_heads, seq_len, self.head_dim).transpose(1, 2).reshape(bsz, seq_len, embed_dim)
         
         attn_output = self.out_proj(attn_output)
-        
-        # --- DEBUG PRINT ---
-        print(f"  - Output attn_output shape: {attn_output.shape}")
-        print(f"--- [DEBUG RoPEVisionAttention forward] End ---\n")
         
         attn_weights_output = attn_weights if output_attentions else None
 
@@ -184,11 +183,10 @@ def convert_vision_encoder_to_rope(
     logging.info(f"Targeting attention module: {attention_module_class.__name__}")
     logging.info(f"Targeting positional embedding path: {positional_embedding_path}")
 
-    # --- 1. Disable original positional embeddings using the provided path ---
+    # Disable original positional embeddings using the provided path
     try:
         pos_embed_module = get_module_by_name(encoder, positional_embedding_path)
         
-        # The actual parameter is often a child of the module (e.g., .weight)
         if hasattr(pos_embed_module, 'weight'):
             pos_embed_module.weight.data.zero_()
             pos_embed_module.weight.requires_grad = False
@@ -198,11 +196,9 @@ def convert_vision_encoder_to_rope(
 
     except AttributeError:
         logging.error(f"Could not find the positional embedding module at the specified path: '{positional_embedding_path}'. Conversion might fail or be incorrect.")
-        # Depending on strictness, you might want to raise an error here.
         raise AttributeError(f"Path '{positional_embedding_path}' not found in encoder.")
 
-    # --- 2. Recursively find and replace attention modules ---
-    # We define a recursive helper function to traverse the model tree.
+    # Recursively find and replace attention modules
     def _recursive_replace(module: nn.Module):
         for name, child_module in module.named_children():
             if isinstance(child_module, attention_module_class):
