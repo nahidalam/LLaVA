@@ -3,7 +3,7 @@
 deepspeed llava/train/train_mem.py \
     --deepspeed ./scripts/zero3.json \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
-    --version v1     \
+    --version v1 \
     --data_path /dev/data/llava_annotation/llava_v1_5_mix665k.json \
     --image_folder /dev/data/instruction_tune_dataset \
     --vision_tower google/siglip-base-patch16-256 \
