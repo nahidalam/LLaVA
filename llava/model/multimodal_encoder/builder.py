@@ -15,6 +15,25 @@ def build_vision_tower(vision_tower_cfg, **kwargs):
     vision_tower = getattr(vision_tower_cfg, "mm_vision_tower", getattr(vision_tower_cfg, "vision_tower", None))
     use_s2 = getattr(vision_tower_cfg, "s2", False)
 
+    if getattr(vision_tower_cfg, 'use_rope_vision', False):
+        ENCODER_SPECS = {
+            'clip': {
+                'model_class': CLIPVisionModel,
+                'attention_class': CLIPAttention,
+                'pos_embed_path': 'vision_model.embeddings.position_embedding',
+                'tower_wrapper_class': CLIPVisionTower,
+                'grid_dim_divisor': 14 # e.g., 336 / 14 = 24
+            },
+            'siglip': {
+                'model_class': SiglipVisionModel,
+                'attention_class': SiglipAttention,
+                'pos_embed_path': 'embeddings.position_embedding',
+                'tower_wrapper_class': SiglipVisionTower,
+                'grid_dim_divisor': 16 # e.g., 384 / 16 = 24
+            }
+            # TO DO: add specs for other encoders
+        }
+
     if vision_tower and ("apple/aimv2" in vision_tower or "aim-v2" in vision_tower.lower() or "aimv2" in vision_tower.lower()):
         return Aimv2VisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
 
