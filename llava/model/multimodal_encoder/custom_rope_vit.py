@@ -27,56 +27,56 @@ def apply_2d_rope(q, k, cos_sin_cache):
 
 class RoPE2DEmbedding(nn.Module):
     """
-    Generates the cos/sin cache for 2D RoPE.
-    The first half of the head dimension is for height, the second half is for width.
+    Generates the cos/sin cache for 2D RoPE using the "Concatenated Embeddings" method.
     """
-    def __init__(self, head_dim, grid_dims=(24, 24), base=10000):
+    def __init__(self, head_dim, grid_dims=(16, 16), base=10000):
         super().__init__()
+        
+        # --- DEBUG PRINT ---
+        print(f"\n--- [DEBUG RoPE2DEmbedding __init__] ---")
+        print(f"  - Initializing with head_dim: {head_dim}, grid_dims: {grid_dims}")
+        
+        if head_dim % 4 != 0:
+            raise ValueError("head_dim must be divisible by 4 for 2D RoPE.")
+
         self.grid_h, self.grid_w = grid_dims
         self.head_dim = head_dim
         
-        # Ensure head_dim is even and divisible by 2 for H and W dimensions
-        if head_dim % 4 != 0:
-            raise ValueError("head_dim must be divisible by 4 for 2D RoPE.")
-        
-        # 1. Define the dimensionality for each spatial axis (Height and Width)
-        # Each axis gets half of the total head dimension.
         pos_dim_per_axis = head_dim // 2
         
-        # The number of frequency bands is half of the dimension for each axis.
-        freq_dim = pos_dim_per_axis // 2
+        # This creates the full set of frequencies for one axis
+        inv_freq = 1.0 / (base ** (torch.arange(0, pos_dim_per_axis, 2).float() / pos_dim_per_axis))
         
-        # 2. Create a 1D RoPE lookup table
-        # This table needs to be large enough for the largest grid dimension.
         max_grid_dim = max(self.grid_h, self.grid_w)
-        
-        # Standard RoPE frequency calculation
-        inv_freq = 1.0 / (base ** (torch.arange(0, freq_dim, 2).float() / freq_dim))
         positions = torch.arange(max_grid_dim, dtype=torch.float32)
         
-        # Create the 1D frequency table
-        freqs_1d = torch.einsum("i,j->ij", positions, inv_freq) # Shape: (max_grid_dim, freq_dim/2)
+        freqs_1d = torch.einsum("i,j->ij", positions, inv_freq)
         
-        # This is our 1D lookup table for one spatial dimension (e.g., height)
-        # Shape: (max_grid_dim, pos_dim_per_axis)
         emb_1d_lookup = torch.cat((freqs_1d, freqs_1d), dim=-1)
+        
+        # --- DEBUG PRINT ---
+        print(f"  - pos_dim_per_axis: {pos_dim_per_axis}")
+        print(f"  - inv_freq shape: {inv_freq.shape}")
+        print(f"  - freqs_1d shape: {freqs_1d.shape}")
+        print(f"  - emb_1d_lookup shape: {emb_1d_lookup.shape}")
 
-        # 3. Create coordinate indices for the entire grid
-        h_indices = torch.arange(self.grid_h).unsqueeze(1).expand(-1, self.grid_w) # Shape: (grid_h, grid_w)
-        w_indices = torch.arange(self.grid_w).unsqueeze(0).expand(self.grid_h, -1) # Shape: (grid_h, grid_w)
+        h_indices = torch.arange(self.grid_h).unsqueeze(1).expand(-1, self.grid_w)
+        w_indices = torch.arange(self.grid_w).unsqueeze(0).expand(self.grid_h, -1)
 
-        # 4. "Look up" the H and W embeddings from the 1D table
-        h_embeds = emb_1d_lookup[h_indices] # Shape: (grid_h, grid_w, pos_dim_per_axis)
-        w_embeds = emb_1d_lookup[w_indices] # Shape: (grid_h, grid_w, pos_dim_per_axis)
+        h_embeds = emb_1d_lookup[h_indices]
+        w_embeds = emb_1d_lookup[w_indices]
         
-        # 5. Concatenate to form the final 2D embedding and flatten
-        # This is the core of the "Concatenated Embeddings" method.
-        emb_2d = torch.cat((h_embeds, w_embeds), dim=-1) # Shape: (grid_h, grid_w, head_dim)
+        emb_2d = torch.cat((h_embeds, w_embeds), dim=-1)
         
-        # Flatten to a 1D sequence of patches
-        emb_flat = emb_2d.reshape(-1, self.head_dim) # Shape: (grid_h * grid_w, head_dim)
+        emb_flat = emb_2d.reshape(-1, self.head_dim)
         
-        # 6. Register the final cos and sin caches
+        # --- DEBUG PRINT ---
+        print(f"  - h_embeds shape: {h_embeds.shape}")
+        print(f"  - w_embeds shape: {w_embeds.shape}")
+        print(f"  - emb_2d (concatenated) shape: {emb_2d.shape}")
+        print(f"  - emb_flat (final cache) shape: {emb_flat.shape}")
+        print(f"--- [DEBUG RoPE2DEmbedding __init__] End ---\n")
+        
         self.register_buffer("cos_cache", emb_flat.cos(), persistent=False)
         self.register_buffer("sin_cache", emb_flat.sin(), persistent=False)
 
@@ -109,8 +109,11 @@ class RoPEVisionAttention(nn.Module):
 
     def forward(self, hidden_states, attention_mask=None, causal_attention_mask=None, output_attentions=False):
         bsz, seq_len, embed_dim = hidden_states.size()
+        
+        # --- DEBUG PRINT ---
+        print(f"\n--- [DEBUG RoPEVisionAttention forward] ---")
+        print(f"  - Input hidden_states shape: {hidden_states.shape}")
 
-        # Get Q, K, V projections
         query_states = self.q_proj(hidden_states)
         key_states = self.k_proj(hidden_states)
         value_states = self.v_proj(hidden_states)
@@ -119,14 +122,9 @@ class RoPEVisionAttention(nn.Module):
         key_states = self._shape(key_states, seq_len, bsz)
         value_states = self._shape(value_states, seq_len, bsz)
 
-        # --- CORE MODIFICATION: Apply 2D RoPE ---
-        # Get the pre-computed cos/sin cache
         cos_sin_cache = self.rope_2d()
-        # Apply rotations to query and key
         query_states, key_states = apply_2d_rope(query_states, key_states, cos_sin_cache)
-        # --- END OF MODIFICATION ---
-
-        # Standard attention calculation
+        
         proj_shape = (bsz * self.num_heads, -1, self.head_dim)
         query_states, key_states, value_states = [t.view(*proj_shape) for t in [query_states, key_states, value_states]]
 
@@ -142,6 +140,10 @@ class RoPEVisionAttention(nn.Module):
         attn_output = attn_output.view(bsz, self.num_heads, seq_len, self.head_dim).transpose(1, 2).reshape(bsz, seq_len, embed_dim)
         
         attn_output = self.out_proj(attn_output)
+        
+        # --- DEBUG PRINT ---
+        print(f"  - Output attn_output shape: {attn_output.shape}")
+        print(f"--- [DEBUG RoPEVisionAttention forward] End ---\n")
         
         return (attn_output, attn_weights) if output_attentions else (attn_output,)
 
