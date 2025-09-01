@@ -3,7 +3,7 @@ from .clip_encoder import CLIPVisionTower, CLIPVisionTowerS2
 from .siglip_encoder import SiglipVisionTower
 from .aimv2_encoder import Aimv2VisionTower
 from .custom_siglip import SiglipVisionTransformerWithRope
-from transformers import SiglipVisionModel, SiglipVisionConfig
+from transformers import SiglipVisionModel, SiglipVisionConfig, CLIPVisionModel, SiglipAttention
 
 from huggingface_hub import hf_hub_download
 from safetensors import safe_open
@@ -33,6 +33,41 @@ def build_vision_tower(vision_tower_cfg, **kwargs):
             }
             # TO DO: add specs for other encoders
         }
+
+        spec = None
+        if 'clip' in vision_tower_name.lower():
+            spec = ENCODER_SPECS['clip']
+        elif 'siglip' in vision_tower_name.lower():
+            spec = ENCODER_SPECS['siglip']
+        
+        if spec is None:
+            raise ValueError(f"RoPE conversion is not yet configured for vision tower: {vision_tower_name}")
+
+        # 2. Load the original pre-trained encoder from Hugging Face
+        original_encoder = spec['model_class'].from_pretrained(vision_tower_name, **kwargs)
+        
+        # 3. Determine the grid dimensions
+        # We get the image size from the model's config.
+        image_size = original_encoder.config.image_size
+        grid_dim = image_size // spec['grid_dim_divisor']
+        grid_dims = (grid_dim, grid_dim)
+
+        # 4. Call your generalized conversion function to perform the model surgery
+        rope_encoder = convert_vision_encoder_to_rope(
+            encoder=original_encoder,
+            attention_module_class=spec['attention_class'],
+            positional_embedding_path=spec['pos_embed_path'],
+            grid_dims=grid_dims
+        )
+
+        # 5. Create the LLaVA VisionTower wrapper and inject the modified encoder
+        # The wrapper handles things like the image processor and device placement.
+        tower = spec['tower_wrapper_class'](vision_tower_name, args=vision_tower_cfg, **kwargs)
+        tower.vision_tower = rope_encoder
+        tower.is_loaded = True # Mark as loaded since we did it manually
+        
+        print(f"Successfully built vision tower '{vision_tower_name}' with 2D RoPE.")
+        return tower
 
     if vision_tower and ("apple/aimv2" in vision_tower or "aim-v2" in vision_tower.lower() or "aimv2" in vision_tower.lower()):
         return Aimv2VisionTower(vision_tower, args=vision_tower_cfg, **kwargs)
