@@ -27,7 +27,7 @@ def build_vision_tower(vision_tower_cfg, **kwargs):
             'siglip': {
                 'model_class': SiglipVisionModel,
                 'attention_class': SiglipAttention,
-                'pos_embed_path': 'embeddings.position_embedding',
+                'pos_embed_path': 'vision_model.embeddings.position_embedding',
                 'tower_wrapper_class': SiglipVisionTower,
                 'grid_dim_divisor': 16 # e.g., 384 / 16 = 24
             }
