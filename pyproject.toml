@@ -16,7 +16,7 @@ classifiers = [
 dependencies = [
     "torch==2.6.0",
     "torchvision>=0.18.0",
-    "transformers==4.54.*",
+    "transformers==4.55.2",
     "sentencepiece==0.1.99",
     "shortuuid",
     "accelerate>=0.29.0",
@@ -39,7 +39,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-train = ["deepspeed==0.12.6", "ninja", "wandb"]
+train = ["deepspeed==0.17.4", "ninja", "wandb"]
 build = ["build", "twine"]
 
 [project.urls]
