@@ -3,10 +3,10 @@ from .clip_encoder import CLIPVisionTower, CLIPVisionTowerS2
 from .siglip_encoder import SiglipVisionTower
 from .aimv2_encoder import Aimv2VisionTower
 from .custom_siglip import SiglipVisionTransformerWithRope
-from transformers import SiglipVisionModel, SiglipVisionConfig, CLIPVisionModel, SiglipAttention
-
-from huggingface_hub import hf_hub_download
-from safetensors import safe_open
+from transformers import SiglipVisionModel, SiglipVisionConfig, CLIPVisionModel
+from transformers.models.clip.modeling_clip import CLIPAttention
+from transformers.models.siglip.modeling_siglip import SiglipAttention
+from .custom_rope_vit import convert_vision_encoder_to_rope
 
 from huggingface_hub import hf_hub_download
 from safetensors import safe_open
