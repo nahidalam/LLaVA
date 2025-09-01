@@ -26,7 +26,10 @@ def apply_2d_rope(q, k, cos_sin_cache):
     return q_embed, k_embed
 
 class RoPE2DEmbedding(nn.Module):
-    """Generates the cos/sin cache for 2D RoPE."""
+    """
+    Generates the cos/sin cache for 2D RoPE.
+    The first half of the head dimension is for height, the second half is for width.
+    """
     def __init__(self, head_dim, grid_dims=(24, 24), base=10000):
         super().__init__()
         self.grid_h, self.grid_w = grid_dims
@@ -36,29 +39,46 @@ class RoPE2DEmbedding(nn.Module):
         if head_dim % 4 != 0:
             raise ValueError("head_dim must be divisible by 4 for 2D RoPE.")
         
-        pos_dim = head_dim // 2 # Positional dimension for each of H and W
+        # 1. Define the dimensionality for each spatial axis (Height and Width)
+        # Each axis gets half of the total head dimension.
+        pos_dim_per_axis = head_dim // 2
+        
+        # The number of frequency bands is half of the dimension for each axis.
+        freq_dim = pos_dim_per_axis // 2
+        
+        # 2. Create a 1D RoPE lookup table
+        # This table needs to be large enough for the largest grid dimension.
+        max_grid_dim = max(self.grid_h, self.grid_w)
+        
+        # Standard RoPE frequency calculation
+        inv_freq = 1.0 / (base ** (torch.arange(0, freq_dim, 2).float() / freq_dim))
+        positions = torch.arange(max_grid_dim, dtype=torch.float32)
+        
+        # Create the 1D frequency table
+        freqs_1d = torch.einsum("i,j->ij", positions, inv_freq) # Shape: (max_grid_dim, freq_dim/2)
+        
+        # This is our 1D lookup table for one spatial dimension (e.g., height)
+        # Shape: (max_grid_dim, pos_dim_per_axis)
+        emb_1d_lookup = torch.cat((freqs_1d, freqs_1d), dim=-1)
 
-        # Create frequency bands
-        inv_freq = 1.0 / (base ** (torch.arange(0, pos_dim, 2).float() / pos_dim))
+        # 3. Create coordinate indices for the entire grid
+        h_indices = torch.arange(self.grid_h).unsqueeze(1).expand(-1, self.grid_w) # Shape: (grid_h, grid_w)
+        w_indices = torch.arange(self.grid_w).unsqueeze(0).expand(self.grid_h, -1) # Shape: (grid_h, grid_w)
+
+        # 4. "Look up" the H and W embeddings from the 1D table
+        h_embeds = emb_1d_lookup[h_indices] # Shape: (grid_h, grid_w, pos_dim_per_axis)
+        w_embeds = emb_1d_lookup[w_indices] # Shape: (grid_h, grid_w, pos_dim_per_axis)
         
-        # Create position indices for height and width
-        h_pos = torch.arange(self.grid_h)
-        w_pos = torch.arange(self.grid_w)
+        # 5. Concatenate to form the final 2D embedding and flatten
+        # This is the core of the "Concatenated Embeddings" method.
+        emb_2d = torch.cat((h_embeds, w_embeds), dim=-1) # Shape: (grid_h, grid_w, head_dim)
         
-        # Calculate frequency tensors
-        freqs_h = torch.einsum("i,j->ij", h_pos, inv_freq)
-        freqs_w = torch.einsum("i,j->ij", w_pos, inv_freq)
+        # Flatten to a 1D sequence of patches
+        emb_flat = emb_2d.reshape(-1, self.head_dim) # Shape: (grid_h * grid_w, head_dim)
         
-        # Create the full 2D frequency grid
-        freqs_grid = freqs_h.unsqueeze(1) + freqs_w.unsqueeze(0) # Shape: (grid_h, grid_w, pos_dim)
-        
-        # Flatten and concatenate for the final embedding table
-        # Shape: (grid_h * grid_w, pos_dim * 2) -> (seq_len, head_dim)
-        emb = torch.cat((freqs_grid, freqs_grid), dim=-1).reshape(-1, head_dim)
-        
-        # Register cos and sin as non-parameter buffers
-        self.register_buffer("cos_cache", emb.cos(), persistent=False)
-        self.register_buffer("sin_cache", emb.sin(), persistent=False)
+        # 6. Register the final cos and sin caches
+        self.register_buffer("cos_cache", emb_flat.cos(), persistent=False)
+        self.register_buffer("sin_cache", emb_flat.sin(), persistent=False)
 
     def forward(self):
         return self.cos_cache, self.sin_cache
