@@ -145,7 +145,9 @@ class RoPEVisionAttention(nn.Module):
         print(f"  - Output attn_output shape: {attn_output.shape}")
         print(f"--- [DEBUG RoPEVisionAttention forward] End ---\n")
         
-        return (attn_output, attn_weights) if output_attentions else (attn_output,)
+        attn_weights_output = attn_weights if output_attentions else None
+
+        return attn_output, attn_weights_output
 
 def get_module_by_name(module, name):
     """
