@@ -1,7 +1,7 @@
 #!/bin/bash
 
-deepspeed llava/train/train_sdpa.py \
-    --deepspeed ./scripts/zero3.json \
+deepspeed llava/train/train_mem.py \
+    --deepspeed ./scripts/zero2.json \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
     --version plain \
     --data_path /kaggle/input/blip-laion-cc-sbu-558/blip_laion_cc_sbu_558.json \
