@@ -3,9 +3,9 @@
 deepspeed llava/train/train_mem.py \
     --deepspeed ./scripts/zero3.json \
     --model_name_or_path lmsys/vicuna-7b-v1.5 \
-    --version plain \
-    --data_path /kaggle/working/LLaVA-Pretrain/blip_laion_cc_sbu_558k.json \
-    --image_folder /kaggle/input/llava-pretrainimages-zip \
+    --version v1     \
+    --data_path /dev/data/llava_annotation/llava_v1_5_mix665k.json \
+    --image_folder /dev/data/instruction_tune_dataset \
     --vision_tower google/siglip-base-patch16-256 \
     --pretrain_mm_mlp_adapter ./checkpoints/llava-v1.5-7b-pretrain-siglip-base-patch16-256/mm_projector.bin \
     --mm_projector_type mlp2x_gelu \
