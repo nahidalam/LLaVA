@@ -55,6 +55,11 @@ class SiglipVisionTower(nn.Module):
                 )
 
                 image_feature = self.feature_select(image_forward_out).to(image.dtype)
+                # Force consistent spatial size for all images
+                if image_feature.ndim == 4:  # [B, C, H, W]
+                    image_feature = torch.nn.functional.interpolate(
+                            image_feature, size=(256, 256), mode='bilinear', align_corners=False
+                    )
                 image_features.append(image_feature)
         else:
             #image_forward_outs = self.vision_tower(images.to(device=self.device, dtype=self.dtype), output_hidden_states=True)
@@ -66,7 +71,11 @@ class SiglipVisionTower(nn.Module):
             )   
 
             image_features = self.feature_select(image_forward_outs).to(images.dtype)
-
+            # Force consistent spatial size for all images
+            if image_feature.ndim == 4:  # [B, C, H, W]
+                image_feature = torch.nn.functional.interpolate(
+                    image_feature, size=(256, 256), mode='bilinear', align_corners=False
+                )
         return image_features
 
     @property
@@ -148,6 +157,11 @@ class SiglipVisionTowerS2(SiglipVisionTower):
         )
 
         image_features = self.feature_select(image_forward_outs).to(images.dtype)
+        # Force consistent spatial size for all images
+        if image_feature.ndim == 4:  # [B, C, H, W]
+            image_feature = torch.nn.functional.interpolate(
+                    image_feature, size=(256, 256), mode='bilinear', align_corners=False
+            )
         return image_features
 
     @torch.no_grad()
@@ -156,9 +170,19 @@ class SiglipVisionTowerS2(SiglipVisionTower):
             image_features = []
             for image in images:
                 image_feature = self.multiscale_forward(self.forward_feature, image.unsqueeze(0), img_sizes=self.s2_scales, max_split_size=self.s2_split_size)
+                # Force consistent spatial size for all images
+                if image_feature.ndim == 4:  # [B, C, H, W]
+                    image_feature = torch.nn.functional.interpolate(
+                        image_feature, size=(256, 256), mode='bilinear', align_corners=False
+                    )
                 image_features.append(image_feature)
         else:
             image_features = self.multiscale_forward(self.forward_feature, images, img_sizes=self.s2_scales, max_split_size=self.s2_split_size)
+            # Force consistent spatial size for all images
+            if image_feature.ndim == 4:  # [B, C, H, W]
+                image_feature = torch.nn.functional.interpolate(
+                    image_feature, size=(256, 256), mode='bilinear', align_corners=False
+                )
 
         return image_features
 
