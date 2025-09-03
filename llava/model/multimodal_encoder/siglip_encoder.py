@@ -72,9 +72,9 @@ class SiglipVisionTower(nn.Module):
 
             image_features = self.feature_select(image_forward_outs).to(images.dtype)
             # Force consistent spatial size for all images
-            if image_feature.ndim == 4:  # [B, C, H, W]
-                image_feature = torch.nn.functional.interpolate(
-                    image_feature, size=(256, 256), mode='bilinear', align_corners=False
+            if image_features.ndim == 4:  # [B, C, H, W]
+                image_features = torch.nn.functional.interpolate(
+                    image_features, size=(256, 256), mode='bilinear', align_corners=False
                 )
         return image_features
 
@@ -158,9 +158,9 @@ class SiglipVisionTowerS2(SiglipVisionTower):
 
         image_features = self.feature_select(image_forward_outs).to(images.dtype)
         # Force consistent spatial size for all images
-        if image_feature.ndim == 4:  # [B, C, H, W]
-            image_feature = torch.nn.functional.interpolate(
-                    image_feature, size=(256, 256), mode='bilinear', align_corners=False
+        if image_features.ndim == 4:  # [B, C, H, W]
+            image_features = torch.nn.functional.interpolate(
+                    image_features, size=(256, 256), mode='bilinear', align_corners=False
             )
         return image_features
 
@@ -179,9 +179,9 @@ class SiglipVisionTowerS2(SiglipVisionTower):
         else:
             image_features = self.multiscale_forward(self.forward_feature, images, img_sizes=self.s2_scales, max_split_size=self.s2_split_size)
             # Force consistent spatial size for all images
-            if image_feature.ndim == 4:  # [B, C, H, W]
-                image_feature = torch.nn.functional.interpolate(
-                    image_feature, size=(256, 256), mode='bilinear', align_corners=False
+            if image_features.ndim == 4:  # [B, C, H, W]
+                image_features = torch.nn.functional.interpolate(
+                    image_features, size=(256, 256), mode='bilinear', align_corners=False
                 )
 
         return image_features
