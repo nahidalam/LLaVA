@@ -165,7 +165,10 @@ class LlavaMetaForCausalLM(ABC):
             #skipping for gemma3-siglip 
             LlavaMetaForCausalLM.skip_count_images_branch += 1
             print(f"[DEBUG] Skipped 'if images list/ndim==5' branch " f"(total skips: {LlavaMetaForCausalLM.skip_count_images_branch})")
-            pass  # skip block entirely
+            #pass  # skip block entirely
+            # Return everything unchanged, with inputs_embeds=None
+            return input_ids, position_ids, attention_mask, past_key_values, None, labels
+            
             if type(images) is list:
                 images = [x.unsqueeze(0) if x.ndim == 3 else x for x in images]
             concat_images = torch.cat([image for image in images], dim=0)
