@@ -73,6 +73,7 @@ class ModelArguments:
     mm_use_im_patch_token: bool = field(default=True)
     mm_patch_merge_type: Optional[str] = field(default='flat')
     mm_vision_select_feature: Optional[str] = field(default="patch")
+    use_rope_vision: bool = field(default=False)
 
 
 @dataclass
@@ -848,6 +849,7 @@ def train(attn_implementation=None):
                 cache_dir=training_args.cache_dir,
                 attn_implementation=attn_implementation,
                 torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
+                use_safetensors=True,
                 **bnb_model_from_pretrained_args
             )
     else:
@@ -856,6 +858,7 @@ def train(attn_implementation=None):
             cache_dir=training_args.cache_dir,
             attn_implementation=attn_implementation,
             torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
+            use_safetensors=True,
             **bnb_model_from_pretrained_args
         )
     model.config.use_cache = False

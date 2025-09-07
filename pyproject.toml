@@ -7,7 +7,7 @@ name = "llava"
 version = "1.2.2.post1"
 description = "Towards GPT-4 like large language and visual assistant."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: Apache Software License",
