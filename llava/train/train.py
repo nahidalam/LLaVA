@@ -751,7 +751,8 @@ class LazySupervisedDataset(Dataset):
         elif self.data_args.is_multimodal:
             # image does not exist in the data, but the model is multimodal
             #crop_size = self.data_args.image_processor.crop_size
-            if 'siglip' in self.data_args.image_processor.image_processor_type.lower():
+            processor_type = getattr(self.data_args.image_processor, "image_processor_type", "").lower()
+            if 'siglip' in processor_type:
                 crop_size = {'height': 256, 'width': 256}
             else:
                 crop_size = self.data_args.image_processor.crop_size
