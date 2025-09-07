@@ -8,7 +8,7 @@ deepspeed llava/train/train_mem.py \
     --image_folder ~/data/instruction_tune_dataset \
     --vision_tower google/siglip2-base-patch16-256 \
     --use_rope_vision True \
-    --pretrain_mm_mlp_adapter ./checkpoints/llava-v1.5-7b-pretrain-mrope-siglip-base-patch16-256/mm_projector.bin \
+    --pretrain_mm_mlp_adapter ./checkpoints/llava-v1.5-7b-pretrain-mrope-siglip2-base-patch16-256/mm_projector.bin \
     --mm_projector_type mlp2x_gelu \
     --mm_vision_select_layer -2 \
     --mm_use_im_start_end False \
