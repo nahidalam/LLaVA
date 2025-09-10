@@ -751,7 +751,8 @@ class LazySupervisedDataset(Dataset):
         elif self.data_args.is_multimodal:
             # image does not exist in the data, but the model is multimodal
             #crop_size = self.data_args.image_processor.crop_size
-            if 'siglip' in self.data_args.image_processor.image_processor_type.lower():
+            processor_type = getattr(self.data_args.image_processor, "image_processor_type", "").lower()
+            if 'siglip' in processor_type:
                 crop_size = {'height': 256, 'width': 256}
             else:
                 crop_size = self.data_args.image_processor.crop_size
@@ -849,7 +850,7 @@ def train(attn_implementation=None):
                 cache_dir=training_args.cache_dir,
                 attn_implementation=attn_implementation,
                 torch_dtype=(torch.bfloat16 if training_args.bf16 else None),
-                use_safetensors=True,
+                use_safetensors=False,
                 **bnb_model_from_pretrained_args
             )
     else:
